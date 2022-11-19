@@ -5,34 +5,32 @@
 from math import *
 import numpy as np
 
+import square
+import kagome
+import pyrochlore
+
 
 
 
 '''Lattice structure'''
 
 
-def ltcname(mtype):
+def ltcname(ltype):
     '''
     Lattice name
     '''
-    dictt={
-            21:'Square lattice',     # Square
-            22:'Kagome lattice',     # Kagome
-            31:'Pyrochlore lattice'  # Pyrochlore
-            }
-    return dictt[mtype]
+    if(ltype==221):return square.ltcname()
+    elif(ltype==233):return kagome.ltcname()
+    elif(ltype==334):return pyrochlore.ltcname()
 
 
-def avs(mtype):
+def avs(ltype):
     '''
     Bravais lattice vectors
     '''
-    dictt={
-            21:np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]]), # Square
-            22:np.array([[0.,2.,0.],[sqrt(3.),1.,0.],[0.,0.,1.]]),   # Kagome
-            31:np.array([[0.,2.,0.],[sqrt(3.),1.,0.],[1/sqrt(3.),1.,2.*sqrt(2./3.)]])    # Pyrochlore
-    }
-    return dictt[mtype]
+    if(ltype==221):return square.avs()
+    elif(ltype==233):return kagome.avs()
+    elif(ltype==334):return pyrochlore.avs()
 
 
 def ltcsites(Nltc):
@@ -42,23 +40,20 @@ def ltcsites(Nltc):
     return [[np.array([n0,n1,n2]),sl] for n0 in range(Nltc[0][0]) for n1 in range(Nltc[0][1]) for n2 in range(Nltc[0][2]) for sl in range(Nltc[1])]
 
 
-def avsls(mtype):
+def avsls(ltype):
     '''
     Sublattice vectors
     '''
-    dictt={
-            21:np.array([[0.,0.,0.]]),   # Square
-            22:np.array([[0.,0.,0.],[0.,1.,0.],[sqrt(3.)/2.,1./2.,0.]]), # Kagome
-            31:np.array([[0.,0.,0.],[0.,1.,0.],[sqrt(3.)/2.,1./2.,0.],[1./(2.*sqrt(3.)),1./2.,sqrt(2./3.)]]) # Pyrochlore
-    }
-    return dictt[mtype]
+    if(ltype==221):return square.avsls()
+    elif(ltype==233):return kagome.avsls()
+    elif(ltype==334):return pyrochlore.avsls()
 
 
-def nslf(mtype):
+def nslf(ltype):
     '''
     Sublattice number
     '''
-    return np.shape(avsls(mtype))[0]
+    return np.shape(avsls(ltype))[0]
 
 
 def rid(r,Nltc):
@@ -70,14 +65,14 @@ def rid(r,Nltc):
     return Nltc[1]*(Nltc[0][2]*(Nltc[0][1]*r[0][0]+r[0][1])+r[0][2])+r[1]
 
 
-def pos(r,mtype):
+def pos(r,ltype):
     '''
     Site position
     r=[nr,sl]: Lattice site index
     nr: Bravais lattice site index
     sls: Sublattice site index
     '''
-    return np.dot(np.array(r[0]),avs(mtype))+avsls(mtype)[r[1]]
+    return np.dot(np.array(r[0]),avs(ltype))+avsls(ltype)[r[1]]
 
 
 def cyc(nr,Nbl,bc):
@@ -94,7 +89,7 @@ def cyc(nr,Nbl,bc):
     return dictt[bc]
 
 
-def pairs(r,Nbl,bc,mtype):
+def pairs(r,Nbl,bc,ltype):
     '''
     The pairs between a lattice site r = [nr,sl] and itself, nearest neighbors, and second neighbors
     r=[nr,sl]: Lattice site index
@@ -102,95 +97,9 @@ def pairs(r,Nbl,bc,mtype):
     Nbl=[N1,N2,N3]: Bravais lattice dimension
     bc: Boundary condition
     '''
-    nr=r[0]
-    sl=r[1]
-
-    # ONblite
-    pairs0th=[[[nr,sl],[nr,sl]]]
-
-    # Nearest neighbors
-    pairs1st={
-        # Square
-        21:{
-            0:[
-                [[nr,0],[cyc(nr+np.array([-1,0,0]),Nbl,bc),0]],[[nr,0],[cyc(nr+np.array([1,0,0]),Nbl,bc),0]],
-                [[nr,0],[cyc(nr+np.array([0,-1,0]),Nbl,bc),0]],[[nr,0],[cyc(nr+np.array([0,1,0]),Nbl,bc),0]]
-                ]
-            },
-       # Kagome
-        22:{
-            # sl1=0
-            0:[[[nr,0],[nr,1]],[[nr,0],[nr,2]],[[nr,0],[cyc(nr+np.array([-1,0,0]),Nbl,bc),1]],[[nr,0],[cyc(nr+np.array([0,-1,0]),Nbl,bc),2]]],
-            # sl1=1
-            1:[[[nr,1],[nr,0]],[[nr,1],[nr,2]],[[nr,1],[cyc(nr+np.array([1,0,0]),Nbl,bc),0]],[[nr,1],[cyc(nr+np.array([1,-1,0]),Nbl,bc),2]]],
-            # sl1=2
-            2:[[[nr,2],[nr,0]],[[nr,2],[nr,1]],[[nr,2],[cyc(nr+np.array([0,1,0]),Nbl,bc),0]],[[nr,2],[cyc(nr+np.array([-1,1,0]),Nbl,bc),1]]]
-            },
-        # Pyrochlore
-        31:{
-            # sl1=0
-            0:[
-                [[nr,0],[nr,1]],[[nr,0],[nr,2]],[[nr,0],[nr,3]],
-                [[nr,0],[cyc(nr+np.array([-1,0,0]),Nbl,bc),1]],
-                [[nr,0],[cyc(nr+np.array([0,-1,0]),Nbl,bc),2]],
-                [[nr,0],[cyc(nr+np.array([0,0,-1]),Nbl,bc),3]]
-                ],
-            # sl1=1
-            1:[
-                [[nr,1],[nr,0]],[[nr,1],[nr,2]],[[nr,1],[nr,3]],
-                [[nr,1],[cyc(nr+np.array([1,0,0]),Nbl,bc),0]],
-                [[nr,1],[cyc(nr+np.array([1,-1,0]),Nbl,bc),2]],
-                [[nr,1],[cyc(nr+np.array([1,0,-1]),Nbl,bc),3]]
-                ],
-            # sl1=2
-            2:[
-                [[nr,2],[nr,0]],[[nr,2],[nr,1]],[[nr,2],[nr,3]],
-                [[nr,2],[cyc(nr+np.array([0,1,0]),Nbl,bc),0]],
-                [[nr,2],[cyc(nr+np.array([-1,1,0]),Nbl,bc),1]],
-                [[nr,2],[cyc(nr+np.array([0,1,-1]),Nbl,bc),3]]
-                ],
-            # sl1=3
-            3:[
-                [[nr,3],[nr,0]],[[nr,3],[nr,1]],[[nr,3],[nr,2]],
-                [[nr,3],[cyc(nr+np.array([0,0,1]),Nbl,bc),0]],
-                [[nr,3],[cyc(nr+np.array([-1,0,1]),Nbl,bc),1]],
-                [[nr,3],[cyc(nr+np.array([0,-1,1]),Nbl,bc),2]]
-                ]
-            }
-        }
-
-    # Second neighbors
-    pairs2nd={
-        # Square
-        21:{
-            0:[
-                [[nr,0],[cyc(nr+np.array([-1,-1,0]),Nbl,bc),0]],[[nr,0],[cyc(nr+np.array([-1,1,0]),Nbl,bc),0]],
-                [[nr,0],[cyc(nr+np.array([1,-1,0]),Nbl,bc),0]],[[nr,0],[cyc(nr+np.array([1,1,0]),Nbl,bc),0]]
-                ]
-            },
-        # Kagome
-        22:{
-            # sl1=0
-            0:[
-                [[nr,0],[cyc(nr+np.array([0,-1,0]),Nbl,bc),1]],[[nr,0],[cyc(nr+np.array([1,-1,0]),Nbl,bc),2]],
-                [[nr,0],[cyc(nr+np.array([-1,1,0]),Nbl,bc),1]],[[nr,0],[cyc(nr+np.array([-1,0,0]),Nbl,bc),2]]
-                ],
-            # sl1=1
-            1:[
-                [[nr,1],[cyc(nr+np.array([1,-1,0]),Nbl,bc),0]],[[nr,1],[cyc(nr+np.array([0,-1,0]),Nbl,bc),2]],
-                [[nr,1],[cyc(nr+np.array([0,1,0]),Nbl,bc),0]],[[nr,1],[cyc(nr+np.array([1,0,0]),Nbl,bc),2]]
-                ],
-            # sl1=2
-            2:[
-                [[nr,2],[cyc(nr+np.array([1,0,0]),Nbl,bc),0]],[[nr,2],[cyc(nr+np.array([0,1,0]),Nbl,bc),1]],
-                [[nr,2],[cyc(nr+np.array([-1,1,0]),Nbl,bc),0]],[[nr,2],[cyc(nr+np.array([-1,0,0]),Nbl,bc),1]]
-                ]
-            },
-        # Pyrochlore
-        31:{}
-        }
-
-    return [pairs0th,pairs1st[mtype][sl],pairs2nd[mtype][sl]]
+    if(ltype==221):return square.pairs(r,Nbl,bc)
+    elif(ltype==233):return kagome.pairs(r,Nbl,bc)
+    elif(ltype==334):return pyrochlore.pairs(r,Nbl,bc)
 
 
 

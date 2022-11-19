@@ -6,6 +6,8 @@ from math import *
 import cmath as cmt
 import numpy as np
 
+import sys
+sys.path.append('../lattice')
 import lattice as ltc
 
 
@@ -35,7 +37,7 @@ def termmat(Mt,mt,r1,fl1,r2,fl2,Nall):
     Mt[stid(r2,fl2,Nall),stid(r1,fl1,Nall)]+=np.conj(mt)
 
 
-def tbham(Mt,htb,rs,Nall,bc,mtype):
+def tbham(Mt,htb,rs,Nall,bc,ltype):
     '''
     Tight-binding model: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian Mt.
     v0: Onsite potential
@@ -44,7 +46,7 @@ def tbham(Mt,htb,rs,Nall,bc,mtype):
     '''
     for r in rs:
         # Pairs at Bravais lattice site bls
-        pairst=ltc.pairs(r,Nall[0][0],bc,mtype)
+        pairst=ltc.pairs(r,Nall[0][0],bc,ltype)
         # Add matrix elements for the pairs
         [[termmat(Mt,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for pairt in pairst[nd] for fl in range(Nall[1])] for nd in range(len(pairst))]
 

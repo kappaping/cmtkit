@@ -6,7 +6,7 @@ import time
 import joblib
 
 import sys
-sys.path.append('../common')
+sys.path.append('../lattice')
 import lattice as ltc
 import montecarlo as mc
 
@@ -15,11 +15,11 @@ import montecarlo as mc
 
 # Lattice setup
 
-mtype=21
+ltype=221
 fltype=1
-print(ltc.ltcname(mtype))
+print(ltc.ltcname(ltype))
 Nbl=[16,16,1]
-Nsl=ltc.nslf(mtype)
+Nsl=ltc.nslf(ltype)
 Nltc=[Nbl,Nsl]
 Nr=Nltc[0][0]*Nltc[0][1]*Nltc[0][2]*Nltc[1]
 bc=1
@@ -27,10 +27,10 @@ rs=ltc.ltcsites(Nltc)
 
 # Monte Carlo setup
 
-NEQ=1000
-NMC=2000
+NEQ=100
+NMC=200
 Js=[0.,-1.,0.]
-Ts=np.linspace(0.01,4.,num=50).tolist()
+Ts=np.linspace(0.01,4.,num=20).tolist()
 
 chis=[]
 cTs=[]
@@ -38,8 +38,8 @@ cTs=[]
 for T in Ts:
     time1=time.time()
     fls=mc.latticefl(rs,Nltc,fltype)
-    mc.equilibrate(fls,Js,Ts[0],rs,Nltc,Nr,bc,mtype,fltype,NEQ)
-    chit,cTt=mc.sampling(fls,Js,T,rs,Nltc,Nr,bc,mtype,fltype,NMC)
+    mc.equilibrate(fls,Js,Ts[0],rs,Nltc,Nr,bc,ltype,fltype,NEQ)
+    chit,cTt=mc.sampling(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype,NMC)
     chis.append(chit)
     cTs.append(cTt)
     time2=time.time()

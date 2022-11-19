@@ -4,15 +4,15 @@ from math import *
 import numpy as np
 
 import sys
-sys.path.append('../common')
+sys.path.append('../lattice')
 import lattice as ltc
 import tightbinding as tb
 
 
-mtype=22
-print(ltc.ltcname(mtype))
+ltype=233
+print(ltc.ltcname(ltype))
 Nbl=[2,2,1]
-Nsl=ltc.nslf(mtype)
+Nsl=ltc.nslf(ltype)
 Nltc=[Nbl,Nsl]
 Nfl=2
 Nall=[Nltc,Nfl]
@@ -24,7 +24,7 @@ ltcss=ltc.ltcsites(Nall[0])
 
 htb=[0.,-1.,0.]
 Mt=np.zeros((Ndof,Ndof))
-tb.tbham(Mt,htb,ltcss,Nall,bc,mtype)
+tb.tbham(Mt,htb,ltcss,Nall,bc,ltype)
 print(Mt)
 
 
