@@ -19,3 +19,5 @@ plt.plot(Ts,cTs,label='c$_T$')
 plt.xlabel('T')
 plt.legend()
 plt.show()
+plt.savefig('test.png')
+

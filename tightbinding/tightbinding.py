@@ -1,6 +1,6 @@
 ## Tight-binding module
 
-'''Tight-binding module: For the setup of tight-binding models'''
+'''Tight-binding module: Setup of tight-binding models'''
 
 from math import *
 import cmath as cmt
@@ -48,7 +48,7 @@ def tbham(Mt,htb,rs,Nall,bc,ltype):
         # Pairs at Bravais lattice site bls
         pairst=ltc.pairs(r,Nall[0][0],bc,ltype)
         # Add matrix elements for the pairs
-        [[termmat(Mt,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for pairt in pairst[nd] for fl in range(Nall[1])] for nd in range(len(pairst))]
+        [termmat(Mt,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for nd in range(len(pairst)) for pairt in pairst[nd] for fl in range(Nall[1])]
 
 
 
