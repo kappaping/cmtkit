@@ -14,7 +14,7 @@ print(ltc.ltcname(ltype))
 Nbl=[2,2,1]
 Nsl=ltc.nslf(ltype)
 Nltc=[Nbl,Nsl]
-Nfl=2
+Nfl=1
 Nall=[Nltc,Nfl]
 Ndof=Nall[0][0][0]*Nall[0][0][1]*Nall[0][0][2]*Nall[0][1]*Nall[1]
 bc=1

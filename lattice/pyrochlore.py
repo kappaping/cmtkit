@@ -81,7 +81,20 @@ def pairs(r,Nbl,bc):
             }
 
     # Second neighbors
-    pairs2nd={}
+    pairs2nd={
+            # sl1=0
+            0:[
+                ],
+            # sl1=1
+            1:[
+                ],
+            # sl1=2
+            2:[
+                ],
+            # sl1=3
+            3:[
+                ]
+            }
 
     return [pairs0th,pairs1st[sl],pairs2nd[sl]]
 
