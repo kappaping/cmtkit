@@ -5,6 +5,7 @@
 from math import *
 import cmath as cmt
 import numpy as np
+import sympy
 
 import sys
 sys.path.append('../lattice')
@@ -24,6 +25,13 @@ def stid(r,fl,Nall):
     Nall=[Nltc,Nfl]: Lattice dimension, flavor number
     '''
     return Nall[1]*ltc.rid(r,Nall[0])+fl
+
+
+def stnum(Nall):
+    '''
+    State number
+    '''
+    return Nall[0][0][0]*Nall[0][0][1]*Nall[0][0][2]*Nall[0][1]*Nall[1]
 
 
 def termmat(Mt,mt,r1,fl1,r2,fl2,Nall):
@@ -49,6 +57,61 @@ def tbham(Mt,htb,rs,Nall,bc,ltype):
         pairst=ltc.pairs(r,Nall[0][0],bc,ltype)
         # Add matrix elements for the pairs
         [termmat(Mt,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for nd in range(len(pairst)) for pairt in pairst[nd] for fl in range(Nall[1])]
+
+
+'''Density matrix and the evaluation of charge and spin orders'''
+
+
+def projdenmat(Ut,n0,n1,Nst):
+    '''
+    Generate the density matrix by projecting on the n0-th to n1-th states.
+    '''
+    UtT=Ut.conj().T
+    # Project to only the Noc occupied states
+    D=np.diag(np.array([0.]*n0+[1.]*(n1-n0)+[0.]*(Nst-n1)))
+    return np.linalg.multi_dot([Ut,D,UtT])
+
+
+def pairdm(Pt,r0,r1,Nall):
+    '''
+    Generate the 2x2 density matrix of a pair of lattice sites.
+    '''
+    return np.array([[Pt[stid(r0,fl0,Nall),stid(r1,fl1,Nall)] for fl1 in range(Nall[1])] for fl0 in range(Nall[1])])
+        
+
+def paircharge(Pt,r0,r1,Nall):
+    '''
+    Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
+    '''
+    pcharge=np.trace(pairdm(Pt,r0,r1,Nall))
+    return pcharge.real,pcharge.imag
+
+
+def paulimat(n):
+    '''
+    Pauli matrices
+    '''
+    if(n==0):
+        return np.array([[0.,0.],[0.,0.]])
+    elif(n==1):
+        return np.array([[0.,1.],[1.,0.]])
+    elif(n==2):
+        return np.array([[0.,-1.j],[1.j,0.]])
+    elif(n==3):
+        return np.array([[1.,0.],[0.,-1.]])
+
+
+def pairspin(Pt,r0,r1,Nall):
+    '''
+    Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
+    '''
+    pspin=np.array([np.trace(np.dot(pairdm(Pt,r0,r1,Nall),(1./2.)*paulimat(n))) for n in [1,2,3]])
+    return pspin.real,pspin.imag
+
+
+
+
+
 
 
 

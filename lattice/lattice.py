@@ -19,18 +19,18 @@ def ltcname(ltype):
     '''
     Lattice name
     '''
-    if(ltype==221):return square.ltcname()
-    elif(ltype==233):return kagome.ltcname()
-    elif(ltype==334):return pyrochlore.ltcname()
+    if(ltype=='sq'):return square.ltcname()
+    elif(ltype=='ka'):return kagome.ltcname()
+    elif(ltype=='py'):return pyrochlore.ltcname()
 
 
-def avs(ltype):
+def blvecs(ltype):
     '''
     Bravais lattice vectors
     '''
-    if(ltype==221):return square.avs()
-    elif(ltype==233):return kagome.avs()
-    elif(ltype==334):return pyrochlore.avs()
+    if(ltype=='sq'):return square.blvecs()
+    elif(ltype=='ka'):return kagome.blvecs()
+    elif(ltype=='py'):return pyrochlore.blvecs()
 
 
 def ltcsites(Nltc):
@@ -40,20 +40,20 @@ def ltcsites(Nltc):
     return [[np.array([n0,n1,n2]),sl] for n0 in range(Nltc[0][0]) for n1 in range(Nltc[0][1]) for n2 in range(Nltc[0][2]) for sl in range(Nltc[1])]
 
 
-def avsls(ltype):
+def slvecs(ltype):
     '''
     Sublattice vectors
     '''
-    if(ltype==221):return square.avsls()
-    elif(ltype==233):return kagome.avsls()
-    elif(ltype==334):return pyrochlore.avsls()
+    if(ltype=='sq'):return square.slvecs()
+    elif(ltype=='ka'):return kagome.slvecs()
+    elif(ltype=='py'):return pyrochlore.slvecs()
 
 
-def nslf(ltype):
+def slnum(ltype):
     '''
     Sublattice number
     '''
-    return np.shape(avsls(ltype))[0]
+    return np.shape(slvecs(ltype))[0]
 
 
 def rid(r,Nltc):
@@ -72,7 +72,7 @@ def pos(r,ltype):
     nr: Bravais lattice site index
     sls: Sublattice site index
     '''
-    return np.dot(np.array(r[0]),avs(ltype))+avsls(ltype)[r[1]]
+    return np.dot(np.array(r[0]),blvecs(ltype))+slvecs(ltype)[r[1]]
 
 
 def cyc(nr,Nbl,bc):
@@ -97,9 +97,9 @@ def pairs(r,Nbl,bc,ltype):
     Nbl=[N1,N2,N3]: Bravais lattice dimension
     bc: Boundary condition
     '''
-    if(ltype==221):return square.pairs(r,Nbl,bc)
-    elif(ltype==233):return kagome.pairs(r,Nbl,bc)
-    elif(ltype==334):return pyrochlore.pairs(r,Nbl,bc)
+    if(ltype=='sq'):return square.pairs(r,Nbl,bc)
+    elif(ltype=='ka'):return kagome.pairs(r,Nbl,bc)
+    elif(ltype=='py'):return pyrochlore.pairs(r,Nbl,bc)
 
 
 

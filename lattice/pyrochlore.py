@@ -20,14 +20,14 @@ def ltcname():
     return 'Pyrochlore lattice'
 
 
-def avs():
+def blvecs():
     '''
     Bravais lattice vectors
     '''
     return np.array([[0.,2.,0.],[sqrt(3.),1.,0.],[1/sqrt(3.),1.,2.*sqrt(2./3.)]])
 
 
-def avsls():
+def slvecs():
     '''
     Sublattice vectors
     '''

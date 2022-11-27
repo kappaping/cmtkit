@@ -20,14 +20,14 @@ def ltcname():
     return 'Square lattice'
 
 
-def avs():
+def blvecs():
     '''
     Bravais lattice vectors
     '''
     return np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
 
 
-def avsls():
+def slvecs():
     '''
     Sublattice vectors
     '''
