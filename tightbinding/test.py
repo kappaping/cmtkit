@@ -1,1 +1,3 @@
-[print(n) for n in [1,2,3,4]]
+import math
+a=[1,2,3,4]
+print(sum(a)/len(a))

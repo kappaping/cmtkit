@@ -72,7 +72,7 @@ def projdenmat(Ut,n0,n1,Nst):
     return np.linalg.multi_dot([Ut,D,UtT])
 
 
-def pairdm(Pt,r0,r1,Nall):
+def pairdenmat(Pt,r0,r1,Nall):
     '''
     Generate the 2x2 density matrix of a pair of lattice sites.
     '''
@@ -83,8 +83,7 @@ def paircharge(Pt,r0,r1,Nall):
     '''
     Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
     '''
-    pcharge=np.trace(pairdm(Pt,r0,r1,Nall))
-    return pcharge.real,pcharge.imag
+    return np.trace(pairdenmat(Pt,r0,r1,Nall))
 
 
 def paulimat(n):
@@ -92,7 +91,7 @@ def paulimat(n):
     Pauli matrices
     '''
     if(n==0):
-        return np.array([[0.,0.],[0.,0.]])
+        return np.array([[1.,0.],[0.,1.]])
     elif(n==1):
         return np.array([[0.,1.],[1.,0.]])
     elif(n==2):
@@ -105,9 +104,53 @@ def pairspin(Pt,r0,r1,Nall):
     '''
     Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
     '''
-    pspin=np.array([np.trace(np.dot(pairdm(Pt,r0,r1,Nall),(1./2.)*paulimat(n))) for n in [1,2,3]])
-    return pspin.real,pspin.imag
+    return np.array([np.trace(np.dot(pairdenmat(Pt,r0,r1,Nall),(1./2.)*paulimat(n))) for n in [1,2,3]])
 
+
+def chargeorder(Pt,rs,Nall,ltype):
+    '''
+    Compute the charge order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
+    '''
+    # Site order
+    schs=[paircharge(Pt,r,r,Nall).real for r in rs]
+    # Extract the order as the deviation from the average
+    schsavg=sum(schs)/len(schs)
+    schs=[schs[nr]-schsavg for nr in range(len(schs))]
+    schsa=[abs(schs[nr]) for nr in range(len(schs))]
+    schsmax=max(schsa)
+    # Bond order
+    bc=1
+    bchs=[paircharge(Pt,pairt[0],pairt[1],Nall) for r in rs for pairt in ltc.pairs(r,Nall[0][0],bc,ltype)[1]]
+    # Extract the order as the deviation from the average
+    bchsavg=sum(bchs)/len(bchs)
+    bchs=[bchs[nr]-bchsavg for nr in range(len(bchs))]
+    # Distinguish the real and imaginary bonds
+    bchsr=[bchs[nb].real for nb in range(len(bchs))]
+    bchsra=[abs(bchsr[nb]) for nb in range(len(bchsr))]
+    bchsi=[bchs[nb].imag for nb in range(len(bchs))]
+    bchsia=[abs(bchsi[nb]) for nb in range(len(bchsi))]
+    bchsrmax,bchsimax=max(bchsra),max(bchsia)
+    return schs,bchsr,bchsi,schsmax,bchsrmax,bchsimax
+
+
+def spinorder(Pt,rs,Nall,ltype):
+    '''
+    Compute the spin order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
+    '''
+    # Site order
+    ssps=[pairspin(Pt,r,r,Nall).real for r in rs]
+    sspsn=[np.linalg.norm(ssps[nr]) for nr in range(len(ssps))]
+    sspsmax=max(sspsn)
+    # Bond order
+    bc=1
+    bsps=[pairspin(Pt,pairt[0],pairt[1],Nall) for r in rs for pairt in ltc.pairs(r,Nall[0][0],bc,ltype)[1]]
+    # Distinguish the real and imaginary bonds
+    bspsr=[bsps[nb].real for nb in range(len(bsps))]
+    bspsi=[bsps[nb].imag for nb in range(len(bsps))]
+    bspsrn=[np.linalg.norm(bspsr[nb]) for nb in range(len(bspsr))]
+    bspsin=[np.linalg.norm(bspsi[nb]) for nb in range(len(bspsi))]
+    bspsrmax,bspsimax=max(bspsrn),max(bspsin)
+    return ssps,bspsr,bspsi,sspsmax,bspsrmax,bspsimax
 
 
 
