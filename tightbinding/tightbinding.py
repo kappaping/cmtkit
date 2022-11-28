@@ -62,14 +62,14 @@ def tbham(Mt,htb,rs,Nall,bc,ltype):
 '''Density matrix and the evaluation of charge and spin orders'''
 
 
-def projdenmat(Ut,n0,n1,Nst):
+def projdenmat(U,n0,n1,Nst):
     '''
     Generate the density matrix by projecting on the n0-th to n1-th states.
     '''
-    UtT=Ut.conj().T
+    UT=U.conj().T
     # Project to only the Noc occupied states
-    D=np.diag(np.array([0.]*n0+[1.]*(n1-n0)+[0.]*(Nst-n1)))
-    return np.linalg.multi_dot([Ut,D,UtT])
+    D=np.diag(np.array(n0*[0.]+(n1-n0)*[1.]+(Nst-n1)*[0.]))
+    return np.linalg.multi_dot([U,D,UT])
 
 
 def pairdenmat(Pt,r0,r1,Nall):
