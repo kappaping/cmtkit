@@ -130,7 +130,7 @@ def chargeorder(Pt,rs,Nall,ltype):
     bchsi=[bchs[nb].imag for nb in range(len(bchs))]
     bchsia=[abs(bchsi[nb]) for nb in range(len(bchsi))]
     bchsrmax,bchsimax=max(bchsra),max(bchsia)
-    return schs,bchsr,bchsi,schsmax,bchsrmax,bchsimax
+    return [[schs,bchsr,bchsi],[schsmax,bchsrmax,bchsimax]]
 
 
 def spinorder(Pt,rs,Nall,ltype):
@@ -150,7 +150,7 @@ def spinorder(Pt,rs,Nall,ltype):
     bspsrn=[np.linalg.norm(bspsr[nb]) for nb in range(len(bspsr))]
     bspsin=[np.linalg.norm(bspsi[nb]) for nb in range(len(bspsi))]
     bspsrmax,bspsimax=max(bspsrn),max(bspsin)
-    return ssps,bspsr,bspsi,sspsmax,bspsrmax,bspsimax
+    return [[ssps,bspsr,bspsi],[sspsmax,bspsrmax,bspsimax]]
 
 
 
