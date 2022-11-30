@@ -34,15 +34,15 @@ def stnum(Nall):
     return Nall[0][0][0]*Nall[0][0][1]*Nall[0][0][2]*Nall[0][1]*Nall[1]
 
 
-def termmat(Mt,mt,r1,fl1,r2,fl2,Nall):
+def termmat(Mt,mt,r0,fl0,r1,fl1,Nall):
     '''
-    Assign matrix elements: Assign the coupling mt between states (r1,fl1) and (r2,fl2) to the matrix Mt under Hermitian condition
+    Assign matrix elements: Assign the coupling mt between states (r0,fl0) and (r1,fl1) to the matrix Mt under Hermitian condition
     r=[nr,sl]: Lattice site at Bravais lattice site nr and sublattice sl
     fl: Flavor index
     Nall=[Nbl,Nsl,Nfl]: Bravais lattice dimension, sublattice number, flavor number
     '''
-    Mt[stid(r1,fl1,Nall),stid(r2,fl2,Nall)]+=mt
-    Mt[stid(r2,fl2,Nall),stid(r1,fl1,Nall)]+=np.conj(mt)
+    Mt[stid(r0,fl0,Nall),stid(r1,fl1,Nall)]+=mt
+    Mt[stid(r1,fl1,Nall),stid(r0,fl0,Nall)]+=np.conj(mt)
 
 
 def tbham(Mt,htb,rs,Nall,bc,ltype):
