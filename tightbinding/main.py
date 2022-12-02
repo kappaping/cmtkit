@@ -15,7 +15,7 @@ print(ltc.ltcname(ltype))
 Nbl=[2,2,1]
 Nsl=ltc.slnum(ltype)
 Nltc=[Nbl,Nsl]
-Nfl=2
+Nfl=1
 Nall=[Nltc,Nfl]
 Nst=tb.stnum(Nall)
 print('State number = ',Nst)
@@ -25,12 +25,11 @@ ltcss=ltc.ltcsites(Nall[0])
 [print([ltcs,fl],tb.stid(ltcs,fl,Nall)) for ltcs in ltcss for fl in range(Nfl)]
 
 htb=[0.,-1.,0.]
-Mt=np.zeros((Nst,Nst),dtype=complex)
 time1=time.time()
-tb.tbham(Mt,htb,ltcss,Nall,bc,ltype)
+H=tb.tbham(htb,ltcss,Nall,bc,ltype).real
 time2=time.time()
 print('time = ',time2-time1)
-print(Mt)
+print(H)
 
 
 

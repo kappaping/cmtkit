@@ -45,18 +45,20 @@ def termmat(Mt,mt,r0,fl0,r1,fl1,Nall):
     Mt[stid(r1,fl1,Nall),stid(r0,fl0,Nall)]+=np.conj(mt)
 
 
-def tbham(Mt,htb,rs,Nall,bc,ltype):
+def tbham(htb,rs,Nall,bc,ltype):
     '''
     Tight-binding model: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian Mt.
     v0: Onsite potential
     t1 and t2: Nearest and second neighbor hoppings
     The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
     '''
+    H=np.zeros((stnum(Nall),stnum(Nall)),dtype=complex)
     for r in rs:
         # Pairs at Bravais lattice site bls
         pairst=ltc.pairs(r,Nall[0][0],bc,ltype)
         # Add matrix elements for the pairs
-        [termmat(Mt,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for nd in range(len(pairst)) for pairt in pairst[nd] for fl in range(Nall[1])]
+        [termmat(H,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for nd in range(len(pairst)) for pairt in pairst[nd] for fl in range(Nall[1])]
+    return H
 
 
 '''Density matrix and the evaluation of charge and spin orders'''
