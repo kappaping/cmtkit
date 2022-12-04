@@ -6,6 +6,7 @@ from math import *
 import numpy as np
 
 import square
+import triangular
 import kagome
 import pyrochlore
 
@@ -20,6 +21,7 @@ def ltcname(ltype):
     Lattice name
     '''
     if(ltype=='sq'):return square.ltcname()
+    elif(ltype=='tr'):return triangular.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
     elif(ltype=='py'):return pyrochlore.ltcname()
 
@@ -29,6 +31,7 @@ def blvecs(ltype):
     Bravais lattice vectors
     '''
     if(ltype=='sq'):return square.blvecs()
+    elif(ltype=='tr'):return triangular.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
     elif(ltype=='py'):return pyrochlore.blvecs()
 
@@ -45,6 +48,7 @@ def slvecs(ltype):
     Sublattice vectors
     '''
     if(ltype=='sq'):return square.slvecs()
+    elif(ltype=='tr'):return triangular.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()
     elif(ltype=='py'):return pyrochlore.slvecs()
 
@@ -98,6 +102,7 @@ def pairs(r,Nbl,bc,ltype):
     bc: Boundary condition
     '''
     if(ltype=='sq'):return square.pairs(r,Nbl,bc)
+    elif(ltype=='tr'):return triangular.pairs(r,Nbl,bc)
     elif(ltype=='ka'):return kagome.pairs(r,Nbl,bc)
     elif(ltype=='py'):return pyrochlore.pairs(r,Nbl,bc)
 
