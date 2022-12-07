@@ -87,8 +87,8 @@ def cyc(nr,Nbl,bc):
     bc: Boundary condition
     '''
     dictt={
-    0:nr,                                          # None
-    1:np.array([nr[i]%Nbl[i] for i in range(3)])    # PBC
+    0:nr,   # None
+    1:np.array([nr[i]%Nbl[i] for i in range(3)]),   # PBC
     }
     return dictt[bc]
 
