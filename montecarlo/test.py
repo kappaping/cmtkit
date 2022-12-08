@@ -1,3 +1,1 @@
-## Main function
-import matplotlib            
-print(matplotlib.rcParams['backend'])
+print((-1)**0,(-1)**1)

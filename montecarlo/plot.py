@@ -8,7 +8,7 @@ import joblib
 
 
 #Ts,chis,cTs=joblib.load('data_ising_16x16')
-Ts,chis,cTs=joblib.load('data_ising_16x16')
+Ts,chis,cTs=joblib.load('data_heisenberg_16x16')
 
 #print('Ts = ',Ts)
 #print('chis = ',chis)

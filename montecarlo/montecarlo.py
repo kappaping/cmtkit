@@ -21,19 +21,38 @@ def normalized(vt):
     return (1./nmvt)*vt
 
 
+def zfl(fltype,pm):
+    '''
+    Generate a Sz flavor
+    '''
+    dictt={
+            1:np.array([pm]),              # Ising
+            3:pm*np.array([0.,0.,1.])/2.    # Heisenberg
+            }
+    return dictt[fltype]
+
+
 def randomfl(fltype):
     '''
     Generate a random flavor
     '''
     dictt={
             1:np.array([random.choice([-1,1])]),              # Ising
-            3:normalized(np.array([random.uniform(-1.,1,) for n in range(3)]))    # Heisenberg
+            3:normalized(np.array([random.uniform(-1.,1.)/2. for n in range(3)]))    # Heisenberg
             }
     return dictt[fltype]
 
 
-def latticefl(rs,Nltc,fltype):
-    return {ltc.rid(r,Nltc):randomfl(fltype) for r in rs}
+def latticefl(rs,Nltc,fltype,tofm):
+    # Random
+    if(tofm==0):
+        return [randomfl(fltype) for r in rs]
+    # Ferromagnetism
+    elif(tofm==1):
+        return [zfl(fltype,1) for r in rs]
+    # Antiferromagnetism
+    elif(tofm==-1):
+        return [zfl(fltype,1-2*((r[0][0]-r[0][1])%2)) for r in rs]
 
 
 def flipsite(flr,fltype):
@@ -70,7 +89,7 @@ def equilibrate(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype,NEQ):
     [mcflip(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype) for n in range(NEQ)]
     
 
-def sampling(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype,NMC):
+def sampling(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype,fm,NMC):
     '''
     Monte Carlo sampling
     '''
@@ -80,7 +99,7 @@ def sampling(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype,NMC):
     esqt=0.
     for n in range(NMC):
         mcflip(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype)
-        mn=magnetization(fls,rs,Nltc,Nr)
+        mn=magnetization(fls,rs,Nltc,Nr,fm)
         mt+=mn
         msqt+=np.linalg.norm(mn)**2
         en=energy(fls,Js,rs,Nltc,Nr,ltype)
@@ -91,8 +110,8 @@ def sampling(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype,NMC):
     return chit,cTt
 
 
-def magnetization(fls,rs,Nltc,Nr):
-    return (1./Nr)*sum(fls[ltc.rid(r,Nltc)] for r in rs)
+def magnetization(fls,rs,Nltc,Nr,fm):
+    return (1./Nr)*sum((fm**((r[0][0]-r[0][1])%2))*fls[ltc.rid(r,Nltc)] for r in rs)
 
 
 def energy(fls,Js,rs,Nltc,Nr,ltype):

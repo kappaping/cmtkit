@@ -45,9 +45,12 @@ def termmat(Mt,mt,r0,fl0,r1,fl1,Nall):
     Mt[stid(r1,fl1,Nall),stid(r0,fl0,Nall)]+=np.conj(mt)
 
 
+'''Set Hamiltonian'''
+
+
 def tbham(htb,rs,Nall,bc,ltype):
     '''
-    Tight-binding model: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian Mt.
+    Tight-binding Hamiltonian: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian H.
     v0: Onsite potential
     t1 and t2: Nearest and second neighbor hoppings
     The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
@@ -59,6 +62,34 @@ def tbham(htb,rs,Nall,bc,ltype):
         # Add matrix elements for the pairs
         [termmat(H,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for nd in range(len(pairst)) for pairt in pairst[nd] for fl in range(Nall[1])]
     return H
+
+
+def paulimat(n):
+    '''
+    Pauli matrices
+    '''
+    if(n==0):
+        return np.array([[1.,0.],[0.,1.]])
+    elif(n==1):
+        return np.array([[0.,1.],[1.,0.]])
+    elif(n==2):
+        return np.array([[0.,-1.j],[1.j,0.]])
+    elif(n==3):
+        return np.array([[1.,0.],[0.,-1.]])
+
+
+def hamsite(H,vs,rs,Nall):
+    '''
+    Onsite potentials: Assign the couplings vs=[v[r0],v[r1],....] to the Hamiltonian H.
+    v[r]=[v0[r],v1[r],v2[r],v3[r]]: Set the potential v0[r]*sigma_0+v1[r]*sigma_1+v2[r]*sigma_2+v3[r]*sigma_3 to the site r
+    The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
+    '''
+    for r in rs:
+        # Onsite potential
+        vr=vs[ltc.rid(r,Nall[0])]
+        vrm=(1./2.)*(vr[0]*paulimat(0)+vr[1]*paulimat(1)+vr[2]*paulimat(2)+vr[3]*paulimat(3))
+        # Add matrix elements for the pairs
+        [termmat(H,(1./2.)*vrm[fl0,fl1],r,fl0,r,fl1,Nall) for fl0 in range(Nall[1]) for fl1 in range(Nall[1])]
 
 
 '''Density matrix and the evaluation of charge and spin orders'''
@@ -86,20 +117,6 @@ def paircharge(Pt,r0,r1,Nall):
     Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
     '''
     return np.trace(pairdenmat(Pt,r0,r1,Nall))
-
-
-def paulimat(n):
-    '''
-    Pauli matrices
-    '''
-    if(n==0):
-        return np.array([[1.,0.],[0.,1.]])
-    elif(n==1):
-        return np.array([[0.,1.],[1.,0.]])
-    elif(n==2):
-        return np.array([[0.,-1.j],[1.j,0.]])
-    elif(n==3):
-        return np.array([[1.,0.],[0.,-1.]])
 
 
 def pairspin(Pt,r0,r1,Nall):
