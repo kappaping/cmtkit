@@ -17,29 +17,19 @@ import lattice as ltc
 '''Matrix setup'''
 
 
-def ucsite(nr,bc):
+def ucsite(nr,uctype):
     '''
     Map the original Bravais lattice sites to the unit cell
     nr: Bravais lattice site index
-    bc: Boundary condition
+    uctype: The type of the unit cell
     '''
     dictt={
-    0:nr,   # None
-    21:np.array([nr[0]%2,0,0]), # 2 x 1 x 1 unit cell
-    22:np.array([nr[0]%2,nr[1]%2,0]),   # 2 x 2 x 1 unit cell
-    33:np.array({0:[0,0,0],1:[1,0,0],2:[0,1,0]}[nr[0]-nr[1]]),  # sqrt3 x sqrt3 x 1 unit cell
+    0:nr,   # 1 x 1 x 1
+    21:np.array([nr[0]%2,0,0]), # 2 x 1 x 1
+    22:np.array([nr[0]%2,nr[1]%2,0]),   # 2 x 2 x 1
+    33:np.array({0:[0,0,0],1:[1,0,0],2:[0,1,0]}[nr[0]-nr[1]]),  # sqrt3 x sqrt3 x 1
     }
-    return dictt[bc]
-
-
-def stid(r,fl,Nall):
-    '''
-    Matrix indices for the fermion with fl at site r
-    r: Lattice site
-    flavor: Flavor index
-    Nall=[Nltc,Nfl]: Lattice dimension, flavor number
-    '''
-    return Nall[1]*ltc.rid(r,Nall[0])+fl
+    return dictt[uctype]
 
 
 def stnum(Nall):
