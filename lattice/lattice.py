@@ -89,6 +89,10 @@ def cyc(nr,Nbl,bc):
     dictt={
     0:nr,   # None
     1:np.array([nr[i]%Nbl[i] for i in range(3)]),   # PBC
+    111:np.array([0,0,0]),   # 1 x 1 x 1
+    211:np.array([nr[0]%2,0,0]), # 2 x 1 x 1
+    221:np.array([nr[0]%2,nr[1]%2,0]),   # 2 x 2 x 1
+    331:np.array({0:[0,0,0],1:[1,0,0],2:[0,1,0]}[nr[0]-nr[1]])   # sqrt3 x sqrt3 x 1
     }
     return dictt[bc]
 
