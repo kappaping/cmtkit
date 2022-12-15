@@ -92,7 +92,7 @@ def cyc(nr,Nbl,bc):
     111:np.array([0,0,0]),   # 1 x 1 x 1
     211:np.array([nr[0]%2,0,0]), # 2 x 1 x 1
     221:np.array([nr[0]%2,nr[1]%2,0]),   # 2 x 2 x 1
-    331:np.array({0:[0,0,0],1:[1,0,0],2:[0,1,0]}[nr[0]-nr[1]])   # sqrt3 x sqrt3 x 1
+    331:np.array({0:[0,0,0],1:[1,0,0],2:[0,1,0]}[(nr[0]-nr[1])%3])   # sqrt3 x sqrt3 x 1
     }
     return dictt[bc]
 
@@ -109,6 +109,21 @@ def pairs(r,Nbl,bc,ltype):
     elif(ltype=='tr'):return triangular.pairs(r,Nbl,bc)
     elif(ltype=='ka'):return kagome.pairs(r,Nbl,bc)
     elif(ltype=='py'):return pyrochlore.pairs(r,Nbl,bc)
+
+
+'''Original Brillouin zone'''
+
+
+def hskpoints(ltype):
+    '''
+    List the high-symmetry points of the Brillouin zone
+    '''
+    # Square lattice: [Gamma,X,Y,M1,M2]
+    if(ltype=='sq'):return square.hskpoints()
+    # Triangular lattice: [Gamma,M1,M2,M3,K1,K2,K3]
+    elif(ltype=='tr'):return triangular.hskpoints()
+    # Kagome lattice: [Gamma,M1,M2,M3,K1,K2,K3]
+    elif(ltype=='ka'):return kagome.hskpoints()
 
 
 

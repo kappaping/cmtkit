@@ -26,7 +26,7 @@ ltcss=ltc.ltcsites(Nall[0])
 
 htb=[0.,-1.,0.]
 time1=time.time()
-H=tb.tbham(htb,ltcss,Nall,bc,ltype).real
+H=tb.tbham(htb,ltcss,Nall,bc,ltype)
 time2=time.time()
 print('time = ',time2-time1)
 print(H)

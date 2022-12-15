@@ -89,5 +89,12 @@ def pairs(r,Nbl,bc):
     return [pairs0th,pairs1st[sl],pairs2nd[sl]]
 
 
+def hskpoints():
+    '''
+    High-symmetry points of the Brillouin zone
+    '''
+    return [np.array([0.,0.,0.]),np.array([pi/sqrt(3.),0.,0.]),np.array([-pi/(2.*sqrt(3.)),pi/2.,0.]),np.array([-pi/(2.*sqrt(3.)),-pi/2.,0]),np.array([0.,(2.*pi)/3.,0]),np.array([-pi/sqrt(3.),-pi/3.,0.]),np.array([pi/sqrt(3.),-pi/3.,0.])]
+
+
 
 

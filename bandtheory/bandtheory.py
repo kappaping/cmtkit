@@ -1,6 +1,6 @@
-## Tight-binding module
+## Band module
 
-'''Tight-binding module: Setup of tight-binding models'''
+'''Band module: Setup of band theory'''
 
 from math import *
 import cmath as cmt
@@ -10,6 +10,7 @@ import sympy
 import sys
 sys.path.append('../lattice')
 import lattice as ltc
+sys.path.append('../tightbinding')
 import tightbinding as tb
 
 
@@ -63,11 +64,11 @@ def tbham(htb,k,ltype,uctype,Nfl):
     H=np.zeros((ucstnum(ltype,uctype,Nfl),ucstnum(ltype,uctype,Nfl)),dtype=complex)
     for r in rs:
         # Pairs at Bravais lattice site r
-        pairs0=ltc.pairs(r,Nalluc,0,ltype)
+        pairs0=ltc.pairs(r,ucnums(uctype),0,ltype)
         # Pairs in the unit cell
-        pairsuc=ltc.pairs(r,Nalluc,uctype,ltype)
+        pairsuc=ltc.pairs(r,ucnums(uctype),uctype,ltype)
         # Add matrix elements for the pairs
-        [termmat(H,(1./2.)*htb[nd]*e**(-1.j*np.dot(k,(pos(pairs0[nd][np][0],ltype)-pos(pairs0[nd][np][1],ltype)))),pairsuc[nd][np][0],fl,pairsuc[nd][np][1],fl,Nalluc) for nd in range(len(pairs0)) for np in range(len(pairs0[nd])) for fl in range(Nalluc[1])]
+        [tb.termmat(H,(1./2.)*htb[nd]*e**(-1.j*np.dot(k,(ltc.pos(pairs0[nd][npr][0],ltype)-ltc.pos(pairs0[nd][npr][1],ltype)))),pairsuc[nd][npr][0],fl,pairsuc[nd][npr][1],fl,Nalluc) for nd in range(len(pairs0)) for npr in range(len(pairs0[nd])) for fl in range(Nfl)]
     return H
 
 
