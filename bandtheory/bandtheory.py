@@ -26,8 +26,9 @@ def ucsites(ltype,uctype):
     dictt={
     111:[np.array([0,0,0])],   # 1 x 1 x 1
     211:[np.array([n0,0,0]) for n0 in range(2)], # 2 x 1 x 1
+    121:[np.array([0,n1,0]) for n1 in range(2)], # 2 x 1 x 1
     221:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2)],   # 2 x 2 x 1
-    331:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2-n0)]  # sqrt3 x sqrt3 x 1
+    23231:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2-n0)]  # sqrt3 x sqrt3 x 1
     }
     return [[nr,sl] for nr in dictt[uctype] for sl in range(ltc.slnum(ltype))]
 
@@ -39,8 +40,9 @@ def ucnums(uctype):
     dictt={
     111:[1,1,1],  # 1 x 1 x 1
     211:[2,1,1], # 2 x 1 x 1
+    121:[1,2,1], # 2 x 1 x 1
     221:[2,2,1], # 2 x 2 x 1
-    331:[2,2,1], # sqrt3 x sqrt3 x 1
+    23231:[2,2,1], # sqrt3 x sqrt3 x 1
     }
     return dictt[uctype]
 

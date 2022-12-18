@@ -67,9 +67,24 @@ def pairs(r,Nbl,bc):
     return [pairs0th,pairs1st[sl],pairs2nd[sl]]
 
 
-def hskpoints():
+def hskpoints(uctype):
     '''
     High-symmetry points of the Brillouin zone
     '''
-    return [np.array([0.,0.,0.]),np.array([pi,0.,0.]),np.array([0.,pi,0.]),np.array([pi,pi,0]),np.array([pi,-pi,0])]
+    if(uctype==111):
+        return [['\u0393',pi*np.array([0.,0.,0.])],
+                ['X',pi*np.array([1.,0.,0.])],['Y',pi*np.array([0.,1.,0.])],
+                ['M',pi*np.array([1.,1.,0])],['M',pi*np.array([1.,-1.,0])]]
+    elif(uctype==211):
+        return [['\u0393',pi*np.array([0.,0.,0.])],
+                ['X\u2032',pi*np.array([1./2.,0.,0.])],['Y',pi*np.array([0.,1.,0.])],
+                ['M\u2032',pi*np.array([1./2.,1.,0])],['M\u2032',pi*np.array([1./2.,-1.,0])]]
+    elif(uctype==121):
+        return [['\u0393',pi*np.array([0.,0.,0.])],
+                ['X',pi*np.array([1.,0.,0.])],['Y\u2032',pi*np.array([0.,1./2.,0.])],
+                ['M\u2032',pi*np.array([1.,1./2.,0])],['M\u2032',pi*np.array([1.,-1./2.,0])]]
+    elif(uctype==221):
+        return [['\u0393',pi*np.array([0.,0.,0.])],
+                ['X\u2032',pi*np.array([1./2.,0.,0.])],['Y\u2032',pi*np.array([0.,1./2.,0.])],
+                ['M\u2032',pi*np.array([1./2.,1./2.,0])],['M\u2032',pi*np.array([1./2.,-1./2.,0])]]
 
