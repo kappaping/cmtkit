@@ -1,6 +1,6 @@
 ## Band module
 
-'''Band module: Setup of band theory'''
+'''Band theory module: Setup of Hamiltonian in band theory'''
 
 from math import *
 import cmath as cmt
@@ -28,6 +28,7 @@ def ucsites(ltype,uctype):
     211:[np.array([n0,0,0]) for n0 in range(2)], # 2 x 1 x 1
     121:[np.array([0,n1,0]) for n1 in range(2)], # 2 x 1 x 1
     221:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2)],   # 2 x 2 x 1
+    22221:[np.array([n0,0,0]) for n0 in range(2)],  # sqrt3 x sqrt3 x 1
     23231:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2-n0)]  # sqrt3 x sqrt3 x 1
     }
     return [[nr,sl] for nr in dictt[uctype] for sl in range(ltc.slnum(ltype))]
@@ -42,7 +43,8 @@ def ucnums(uctype):
     211:[2,1,1], # 2 x 1 x 1
     121:[1,2,1], # 2 x 1 x 1
     221:[2,2,1], # 2 x 2 x 1
-    23231:[2,2,1], # sqrt3 x sqrt3 x 1
+    22221:[2,1,1], # 2 x 2 x 1
+    23231:[2,2,1] # sqrt3 x sqrt3 x 1
     }
     return dictt[uctype]
 
@@ -54,7 +56,7 @@ def ucstnum(ltype,uctype,Nfl):
     return len(ucsites(ltype,uctype))*Nfl
 
 
-def tbham(htb,k,ltype,uctype,Nfl):
+def tbham(k,htb,ltype,uctype,Nfl):
     '''
     Tight-binding model in momentum space: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian H
     v0: Onsite potential
@@ -62,9 +64,9 @@ def tbham(htb,k,ltype,uctype,Nfl):
     The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
     '''
     Nalluc=[[ucnums(uctype),ltc.slnum(ltype)],Nfl]
-    rs=ucsites(ltype,uctype)
+    rsuc=ucsites(ltype,uctype)
     H=np.zeros((ucstnum(ltype,uctype,Nfl),ucstnum(ltype,uctype,Nfl)),dtype=complex)
-    for r in rs:
+    for r in rsuc:
         # Pairs at Bravais lattice site r
         pairs0=ltc.pairs(r,ucnums(uctype),0,ltype)
         # Pairs in the unit cell

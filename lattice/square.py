@@ -87,4 +87,8 @@ def hskpoints(uctype):
         return [['\u0393',pi*np.array([0.,0.,0.])],
                 ['X\u2032',pi*np.array([1./2.,0.,0.])],['Y\u2032',pi*np.array([0.,1./2.,0.])],
                 ['M\u2032',pi*np.array([1./2.,1./2.,0])],['M\u2032',pi*np.array([1./2.,-1./2.,0])]]
+    elif(uctype==22221):
+        return [['\u0393',pi*np.array([0.,0.,0.])],
+                ['X\u2032',pi*np.array([1./2.,1./2.,0.])],['Y\u2032',pi*np.array([-1./2.,1./2.,0.])],
+                ['M\u2032',pi*np.array([0.,1.,0])],['M\u2032',pi*np.array([1.,0.,0])]]
 
