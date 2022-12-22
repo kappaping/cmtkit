@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.rcParams['font.size']=18
 plt.rcParams.update({'figure.autolayout': True})
+from matplotlib.patches import Polygon
 
 import sys
 sys.path.append('../lattice')
@@ -27,8 +28,10 @@ def hskcontour(ltype,uctype):
     Set the high-symmetry points in the Brillouin zone forming the contour for the band structure.
     '''
     hska=ltc.hskpoints(ltype,uctype)
-    if(ltype=='sq' or uctype==211 or uctype==121):
+    if(ltype=='sq' and (uctype==111 or uctype==221)):
         return [hska[0],hska[1],hska[3],hska[2],hska[0]]
+    if(uctype==211 or uctype==121):
+        return [hska[0],hska[1],hska[3],hska[0],hska[2],hska[3],hska[0]]
     elif((ltype=='tr' or ltype=='ka') and (uctype==111 or uctype==221)):
         return [hska[0],hska[1],[hska[5][0],-hska[5][1]],hska[0]]
     elif((ltype=='tr' or ltype=='ka') and uctype==23231):
@@ -121,9 +124,43 @@ def bandstructure(H,mu,ltype,uctype,Nfl,Nk,nf=0.):
     plt.ylabel('Ek')
     plt.gcf()
     plt.show()
-#    plt.savefig('test.png')
 
 
+def plotbz(ltype,uctype):
+    '''
+    Draw the Brillouin zone.
+    '''
+    hska=[np.array([kp[1][0],kp[1][1]]) for kp in ltc.hskpoints(ltype,uctype)]
+    hskta=[kp[0] for kp in ltc.hskpoints(ltype,uctype)]
+    if(ltype=='sq' or uctype==211 or uctype==121):
+        bzcs=[hska[3],hska[4],-hska[3],-hska[4],]
+        hskap=[hska[0],hska[1],hska[2],hska[3]]
+        hsktap=[hskta[0],hskta[1],hskta[2],hskta[3]]
+    elif((ltype=='tr' or ltype=='ka') and (uctype==111 or uctype==221)):
+        bzcs=[hska[4],-hska[6],hska[5],-hska[4],hska[6],-hska[5],]
+        hskap=[hska[0],hska[1],-hska[5]]
+        hsktap=[hskta[0],hskta[1],hskta[5]]
+    elif((ltype=='tr' or ltype=='ka') and uctype==23231):
+        bzcs=[hska[4],-hska[6],hska[5],-hska[4],hska[6],-hska[5],]
+        hskap=[hska[0],hska[1],hska[5]]
+        hsktap=[hskta[0],hskta[1],hskta[5]]
+    kmax=1.1*np.amax(abs(np.array(bzcs)))
+    plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
+    fig,ax=plt.subplots()
+    ax.add_patch(plg)
+    hskapx,hskapy=[k[0] for k in hskap],[k[1] for k in hskap]
+    hsktapx,hsktapy=[1.05*k[0] for k in hskap],[1.05*k[1] for k in hskap]
+    hsktapx[0]+=0.05*hskap[-1][0]
+    hsktapy[0]+=0.05*hskap[-1][1]
+    for n in range(len(hskap)):
+        plt.text(hsktapx[n],hsktapy[n],hsktap[n])
+    plt.scatter(hskapx,hskapy,c='r')
+    plt.ylim(-kmax,kmax)
+    plt.xlim(-kmax,kmax)
+    plt.xlabel('k$_x$')
+    plt.ylabel('k$_y$')
+#    ax.axis('off')
+    plt.show()
 
 
 

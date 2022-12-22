@@ -13,10 +13,10 @@ import bandstructure as bdst
 
 ltype='ka'
 print(ltc.ltcname(ltype))
-uctype=211
+uctype=23231
 Nfl=2
 htb=[0.,-1.,0.]
-mu=0.
+mu=1.99
 H=lambda k:bdth.tbham(k,htb,ltype,uctype,Nfl)
 Nk=50
 bdst.bandstructure(H,mu,ltype,uctype,Nfl,Nk)

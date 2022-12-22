@@ -100,11 +100,11 @@ def hskpoints(uctype):
     elif(uctype==211):
         return [['\u0393',pi*np.array([0.,0.,0.])],
                 ['X\u2032',pi*np.array([-1./(4.*sqrt(3.)),1./4.,0.])],['Y\u2032',pi*np.array([sqrt(3.)/4.,1./4.,0.])],
-                ['M\u2032',pi*np.array([1./(2.*sqrt(3.)),1./2.,0])],['M\u2032',np.array([-1./sqrt(3.),0.,0])]]
+                ['M\u2032',pi*np.array([1./(2.*sqrt(3.)),1./2.,0])],['M\u2032',pi*np.array([-1./sqrt(3.),0.,0])]]
     elif(uctype==121):
         return [['\u0393',pi*np.array([0.,0.,0.])],
                 ['X\u2032',pi*np.array([0.,1./2.,0.])],['Y\u2032',pi*np.array([1./(2.*sqrt(3.)),0.,0.])],
-                ['M\u2032',pi*np.array([1./(2.*sqrt(3.)),1./2.,0])],['M\u2032',np.array([-1./(2.*sqrt(3.)),1./2.,0])]]
+                ['M\u2032',pi*np.array([1./(2.*sqrt(3.)),1./2.,0])],['M\u2032',pi*np.array([-1./(2.*sqrt(3.)),1./2.,0])]]
     elif(uctype==221):
         return [['\u0393',pi*np.array([0.,0.,0.])],
                 ['M\u2032',pi*np.array([1./(2.*sqrt(3.)),0.,0.])],['M\u2032',pi*np.array([-1./(4.*sqrt(3.)),1./4.,0.])],['M\u2032',pi*np.array([-1./(4.*sqrt(3.)),-1./4.,0])],

@@ -11,13 +11,16 @@ import bandtheory as bdth
 import bandstructure as bdst
 
 
-ltype='tr'
+ltype='ka'
 print(ltc.ltcname(ltype))
-uctype=111
+uctype=23231
 Nk=100
+'''
 ks=bdst.brillouinzone(ltype,uctype,Nk)
 kxs,kys=[ks[n][0] for n in range(len(ks))],[ks[n][1] for n in range(len(ks))]
 plt.scatter(kxs,kys)
 plt.xlim(-5.,5.)
 plt.ylim(-5.,5.)
 plt.show()
+'''
+bdst.plotbz(ltype,uctype)
