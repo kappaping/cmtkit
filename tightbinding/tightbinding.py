@@ -3,9 +3,7 @@
 '''Tight-binding module: Setup of tight-binding models'''
 
 from math import *
-import cmath as cmt
 import numpy as np
-import sympy
 
 import sys
 sys.path.append('../lattice')
