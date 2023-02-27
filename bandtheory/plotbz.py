@@ -8,19 +8,15 @@ import sys
 sys.path.append('../lattice')
 import lattice as ltc
 import bandtheory as bdth
-import bandstructure as bdst
+import plotband as plbd
 
 
 ltype='ka'
 print(ltc.ltcname(ltype))
-uctype=23231
-Nk=100
-'''
-ks=bdst.brillouinzone(ltype,uctype,Nk)
-kxs,kys=[ks[n][0] for n in range(len(ks))],[ks[n][1] for n in range(len(ks))]
-plt.scatter(kxs,kys)
-plt.xlim(-5.,5.)
-plt.ylim(-5.,5.)
-plt.show()
-'''
-bdst.plotbz(ltype,uctype)
+uctype=111
+Nk=12
+bzop=False
+ks=bdth.brillouinzone(ltype,uctype,Nk,bzop)[0]
+todata=True
+dataks=[[ks[nk][0],ks[nk][1],0.] for nk in range(len(ks))]
+plbd.plotbz(ltype,uctype,todata, dataks)

@@ -78,6 +78,54 @@ def tbham(k,htb,ltype,uctype,Nfl):
 
 
 
+'''Momentum space setup'''
+
+
+def hskcontour(ltype,uctype):
+    '''
+    Set the high-symmetry points in the Brillouin zone forming the contour for the band structure.
+    '''
+    hska=ltc.hskpoints(ltype,uctype)
+    if(ltype=='sq' and (uctype==111 or uctype==221)):
+        return [hska[0],hska[1],hska[3],hska[2],hska[0]]
+    if(uctype==211 or uctype==121):
+        return [hska[0],hska[1],hska[3],hska[0],hska[2],hska[3],hska[0]]
+    elif((ltype=='tr' or ltype=='ka') and (uctype==111 or uctype==221)):
+        return [hska[0],hska[1],[hska[5][0],-hska[5][1]],hska[0]]
+    elif((ltype=='tr' or ltype=='ka') and uctype==23231):
+        return [hska[0],hska[1],[hska[5][0],hska[5][1]],hska[0]]
+
+
+def brillouinzone(ltype,uctype,Nk,bzop=False):
+    '''
+    The momenta in the Brillouin zone.
+    '''
+    ks=[]
+    dks=[]
+    if(bzop==True): dkb=1e-12
+    else: dkb=0.
+    if(ltype=='sq' or uctype==211 or uctype==121):
+        kcs=[ltc.hskpoints(ltype,uctype)[n][1] for n in [1,2]]
+        g0,g1=kcs[0],kcs[1]
+        for n0 in np.linspace(-2.,2.,num=2*Nk+1):
+            for n1 in np.linspace(-2.,2.,num=2*Nk+1):
+                k=n0*g0+n1*g1
+                if(-np.linalg.norm(kcs[0])**2-1e-14<=np.dot(k,kcs[0])<np.linalg.norm(kcs[0])**2+1e-14-dkb and -np.linalg.norm(kcs[1])**2-1e-14<=np.dot(k,kcs[1])<np.linalg.norm(kcs[1])**2+1e-14-dkb):
+                    ks.append(k)
+        dks=[(1./(2.*Nk))*ltc.hskpoints(ltype,uctype)[n][1] for n in [3,4]]
+    elif((ltype=='tr' or ltype=='ka') and (uctype==111 or uctype==221 or uctype==23231)):
+        kcs=[ltc.hskpoints(ltype,uctype)[n][1] for n in [1,2,3]]
+        g0,g1=kcs[0],kcs[1]
+        for n0 in np.linspace(-2.,2.,num=2*Nk+1):
+            for n1 in np.linspace(-2.,2.,num=2*Nk+1):
+                k=n0*g0+n1*g1
+                if(-np.linalg.norm(kcs[0])**2-1e-14<=np.dot(k,kcs[0])<np.linalg.norm(kcs[0])**2+1e-14-dkb and -np.linalg.norm(kcs[1])**2-1e-14<=np.dot(k,kcs[1])<np.linalg.norm(kcs[1])**2+1e-14-dkb and -np.linalg.norm(kcs[2])**2-1e-14<=np.dot(k,kcs[2])<np.linalg.norm(kcs[2])**2+1e-14-dkb):
+                    ks.append(k)
+        dks=[(1./(2.*Nk))*ltc.hskpoints(ltype,uctype)[n][1] for n in [4,5,6]]
+    return [ks,dks]
+
+
+
 
 
 
