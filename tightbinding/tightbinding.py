@@ -103,11 +103,11 @@ def projdenmat(U,n0,n1,Nst):
     return np.linalg.multi_dot([U,D,UT])
 
 
-def pairdenmat(Pt,r0,r1,Nall):
+def pairdenmat(P,r0,r1,Nall):
     '''
     Generate the 2x2 density matrix of a pair of lattice sites.
     '''
-    return np.array([[Pt[stid(r0,fl0,Nall),stid(r1,fl1,Nall)] for fl1 in range(Nall[1])] for fl0 in range(Nall[1])])
+    return np.array([[P[stid(r0,fl0,Nall),stid(r1,fl1,Nall)] for fl1 in range(Nall[1])] for fl0 in range(Nall[1])])
         
 
 def paircharge(Pt,r0,r1,Nall):

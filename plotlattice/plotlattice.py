@@ -4,6 +4,7 @@
 
 from math import *
 import numpy as np
+import matplotlib.pyplot as plt
 from mayavi import mlab
 
 import sys
@@ -47,6 +48,7 @@ def bonds(rs,Nall,ltype,otype,os):
     bc=0
     bs=[np.array([ltc.pos(pairt[0],ltype),ltc.pos(pairt[1],ltype)]).transpose() for r in rs for pairt in ltc.pairs(r,Nall[0][0],bc,ltype)[1]]
     if(otype=='l'):os=[np.array([0. for nb in range(len(bs))]),np.array([0. for nb in range(len(bs))])]
+    elif(otype=='c'):os=[np.array(os[0]),np.array([sqrt(abs(ch))*np.sign(ch) for ch in os[1]])]
     elif(otype=='s'):os=[np.array([np.linalg.norm(sp)*np.sign(sp[2]) for sp in os[0]]),np.array([sqrt(np.linalg.norm(sp))*np.sign(sp[2]) for sp in os[1]])]
     # Imaginary
     bmp=[np.array([(b[n][0]+b[n][1])/2. for n in range(3)]) for b in bs]
@@ -62,16 +64,39 @@ def bonds(rs,Nall,ltype,otype,os):
         bsplr[n].mlab_source.dataset.point_data.scalars=[os[0][n],os[0][n]]
 
 
-def plotlattice(rs,Nall,ltype,otype='l',os=[[],[],[]]):
+def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],size=(5.,5.),setdpi=2000):
     '''
     Plot the lattice
     '''
     sos=os[0]
     bos=[os[1],os[2]]
+    mlab.figure(bgcolor=None,size=(2000,2000))
     sites(rs,ltype,otype,sos)
     bonds(rs,Nall,ltype,otype,bos)
     mlab.view(azimuth=0.,elevation=0.)
-    mlab.show()
+    f=mlab.gcf()
+    f.scene._lift()
+    arr=mlab.screenshot(mode='rgba',antialiased=True)
+    mlab.clf()
+    mlab.close()
+    '''
+    fig=plt.figure()
+    fig.set_size_inches(size)
+    ax=plt.Axes(fig,[0.,0.,1.,1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(arr,interpolation='nearest')
+    plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
+    plt.show()
+    '''
+    fig=plt.imshow(arr)
+    plt.rcParams["figure.figsize"]=(size)
+    plt.axis('off')
+    fig.axes.get_xaxis().set_visible(False)
+    fig.axes.get_yaxis().set_visible(False)
+    plt.savefig(filetfig,dpi=setdpi,bbox_inches='tight',pad_inches=0,transparent=True)
+    plt.clf()
+
 
 
 

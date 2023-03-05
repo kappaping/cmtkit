@@ -17,6 +17,8 @@ uctype=111
 Nk=12
 bzop=False
 ks=bdth.brillouinzone(ltype,uctype,Nk,bzop)[0]
-todata=True
+todata=False
 dataks=[[ks[nk][0],ks[nk][1],0.] for nk in range(len(ks))]
-plbd.plotbz(ltype,uctype,todata, dataks)
+filetfig='../../figs/bz.pdf'
+tosave=True
+plbd.plotbz(ltype,uctype,todata,dataks,tosave,filetfig)
