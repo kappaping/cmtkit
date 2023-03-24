@@ -25,7 +25,7 @@ import bandtheory as bdth
 '''Plotting the bands'''
 
 
-def fillingchempot(H,nf,ltype,uctype,Nbd,Nk):
+def fillingchempot(H,nf,ltype,uctype,Nk):
     '''
     Compute the chemical potential for a given filling
     '''
@@ -39,9 +39,26 @@ def fillingchempot(H,nf,ltype,uctype,Nbd,Nk):
     return mu
 
 
+def fermisurface(H,nf,ltype,uctype,Nk,tosetde=False,de=0.):
+    '''
+    Obtain the Fermi surface for a given filling
+    '''
+    dataks=[]
+    ks=bdth.brillouinzone(ltype,uctype,Nk)[0]
+    Hks=np.array([H(k) for k in ks])
+    es=list(np.linalg.eigvalsh(Hks))
+    mu=fillingchempot(H,nf,ltype,uctype,Nk)
+    Nbd=np.shape(es[0])[0]
+    if(tosetde==False):de=1/Nk**2
+    for n in range(Nbd):
+        for nk in range(len(ks)):
+            if(abs(es[nk][n]-mu))<de:dataks.append([ks[nk][0],ks[nk][1],0.5])
+    return dataks
+
+
 def sectionband(H,mu,k1,k2,k0,Nk,toend,ks,bands):
     '''
-    Compute the band eigenvalues along a momentum-space line section k1-k2.
+    Compute the band energies along a momentum-space line section k1-k2.
     '''
     k12s=list(np.linspace(k1,k2,num=Nk,endpoint=toend))
     dk=np.linalg.norm(k12s[1]-k12s[0])
@@ -52,13 +69,14 @@ def sectionband(H,mu,k1,k2,k0,Nk,toend,ks,bands):
         [bands[n].append(ees[n]) for n in range(len(ees))]
 
 
-def plotbandcontour(H,mu,ltype,uctype,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
+def plotbandcontour(H,ltype,uctype,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
     Nbd=bdth.ucstnum(ltype,uctype,Nfl)
+    mu=0.
     if(nf>0.):
-        mu=fillingchempot(H,nf,ltype,uctype,Nbd,Nk)
+        mu=fillingchempot(H,nf,ltype,uctype,Nk)
     hsks=bdth.hskcontour(ltype,uctype)
     ks=[]
     bands=[[] for n in range(Nbd)]
@@ -76,6 +94,7 @@ def plotbandcontour(H,mu,ltype,uctype,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
         for nk in range(len(bands[n])):
             if(bands[n][nk]<mu+1e-14 and bands[n][(nk+1)%len(bands[n])]<mu+1e-14):
                 cs[n][nk]='g'
+    plt.rcParams.update({'font.size':30})
     for n in range(Nbd):
         #plt.scatter(ks,bands[n],s=2.,c=cs[n])
         points=np.array([ks,bands[n]]).T.reshape(-1,1,2)
@@ -114,20 +133,19 @@ def plotbz(ltype,uctype,todata=False,dataks=[],tosave=False,filetfig=''):
         hsktap=[hskta[0],hskta[1],hskta[5]]
     kmax=1.1*np.amax(abs(np.array(bzcs)))
     plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
+    plt.rcParams.update({'font.size':30})
     fig,ax=plt.subplots()
     ax.add_patch(plg)
     hskapx,hskapy=[k[0] for k in hskap],[k[1] for k in hskap]
-    hsktapx,hsktapy=[1.05*k[0] for k in hskap],[1.05*k[1] for k in hskap]
-    hsktapx[0]+=0.05*hskap[-1][0]
-    hsktapy[0]+=0.05*hskap[-1][1]
+    hsktapx,hsktapy=[1.1*k[0] for k in hskap],[1.1*k[1] for k in hskap]
+    hsktapx[0]+=0.1*hskap[-1][0]
+    hsktapy[0]+=0.1*hskap[-1][1]
     for n in range(len(hskap)):
         plt.text(hsktapx[n],hsktapy[n],hsktap[n])
     plt.scatter(hskapx,hskapy,c='r')
-    if(todata==False):
-        ks1,ks2,datas=[],[],[]
-    else:
-        [ks1,ks2,datas]=np.array(dataks).transpose()
-    plt.scatter(ks1,ks2,c=datas,cmap='coolwarm')
+    if(todata):
+        [ks0,ks1,datas]=np.array(dataks).transpose()
+        plt.scatter(ks0,ks1,s=10.,c=datas,cmap='coolwarm')
     ax=plt.gca()
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
