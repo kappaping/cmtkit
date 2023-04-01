@@ -29,14 +29,14 @@ def sites(rs,ltype,otype,os,tofull):
     elif(otype=='c'):os=np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os])
     if(tofull):
         if(otype=='l' or otype=='c'):
-            sspl=mlab.points3d(r0s,r1s,r2s,colormap='coolwarm',resolution=20,scale_factor=0.5)
+            sspl=mlab.points3d(r0s,r1s,r2s,colormap='coolwarm',resolution=6,scale_factor=0.5)
             sspl.glyph.scale_mode='scale_by_vector'
             sspl.module_manager.scalar_lut_manager.use_default_range=False
             sspl.module_manager.scalar_lut_manager.data_range=[-1.,1.]
             sspl.mlab_source.dataset.point_data.scalars=os
         elif(otype=='s'):
             [s0,s1,s2]=np.array(os).transpose()
-            sspl=mlab.quiver3d(r0s,r1s,r2s,s0,s1,s2,colormap='coolwarm',mode='arrow',scale_factor=1.,resolution=20)
+            sspl=mlab.quiver3d(r0s,r1s,r2s,s0,s1,s2,colormap='coolwarm',mode='arrow',scale_factor=1.,resolution=6)
             sspl.glyph.color_mode='color_by_scalar'
             sspl.module_manager.scalar_lut_manager.use_default_range=False
             sspl.module_manager.scalar_lut_manager.data_range=[-1.,1.]
@@ -65,9 +65,9 @@ def bonds(rs,Nall,ltype,otype,os):
     bv=[np.array([b[n][1]-b[n][0] for n in range(3)]) for b in bs]
     bii=np.array([bmp[nb]-(os[1][nb]/2.)*bv[nb] for nb in range(len(bs))]).transpose()
     biv=np.array([os[1][nb]*bv[nb] for nb in range(len(bs))]).transpose()
-    bspli=mlab.quiver3d(bii[0],bii[1],bii[2],biv[0],biv[1],biv[2],color=(0.4660,0.6740,0.1880),mode='cone',scale_factor=1.,resolution=20)
+    bspli=mlab.quiver3d(bii[0],bii[1],bii[2],biv[0],biv[1],biv[2],color=(0.4660,0.6740,0.1880),mode='cone',scale_factor=1.,resolution=6)
     # Real
-    bsplr=[mlab.plot3d(b[0],b[1],b[2],colormap='coolwarm',tube_radius=0.05,tube_sides=20) for b in bs]
+    bsplr=[mlab.plot3d(b[0],b[1],b[2],colormap='coolwarm',tube_radius=0.05,tube_sides=6) for b in bs]
     for n in range(len(bsplr)):
         bsplr[n].module_manager.scalar_lut_manager.use_default_range=False
         bsplr[n].module_manager.scalar_lut_manager.data_range=[-1.,1.]
@@ -80,7 +80,7 @@ def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],size=(5.,5.),setd
     '''
     sos=os[0]
     bos=[os[1],os[2]]
-    if(tofull):mlab.figure(bgcolor=None,size=(2000,2000))
+    if(tofull):mlab.figure(bgcolor=None,size=(1000,1000))
     sites(rs,ltype,otype,sos,tofull)
     if(tofull):bonds(rs,Nall,ltype,otype,bos)
     if(tofull):
