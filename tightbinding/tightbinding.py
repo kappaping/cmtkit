@@ -170,6 +170,13 @@ def spinorder(Pt,rs,Nall,ltype):
     return [[ssps,bspsr,bspsi],[sspsmax,bspsrmax,bspsimax]]
 
 
+def setpairspin(Pt,Pr,r0,r1,Nall):
+    '''
+    Set the spin of a pair of lattice sites.
+    '''
+    [termmat(Pt,(1./2.)*Pr[fl0,fl1],r0,fl0,r1,fl1,Nall) for fl0 in range(Nall[1]) for fl1 in range(Nall[1])]
+
+
 
 
 
