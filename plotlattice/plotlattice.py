@@ -19,7 +19,7 @@ import tightbinding as tb
 '''Plotting the lattice'''
 
 
-def sites(rs,ltype,otype,os,res,tofull):
+def sites(rs,ltype,otype,os,res,to3d):
     '''
     Lattice site positions.
     '''
@@ -27,7 +27,7 @@ def sites(rs,ltype,otype,os,res,tofull):
     [r0s,r1s,r2s]=ss.transpose()
     if(otype=='l'):os=np.array([0. for nr in range(len(rs))])
     elif(otype=='c'):os=np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os])
-    if(tofull):
+    if(to3d):
         if(otype=='l' or otype=='c'):
             sspl=mlab.points3d(r0s,r1s,r2s,colormap='coolwarm',resolution=res,scale_factor=0.5)
             sspl.glyph.scale_mode='scale_by_vector'
@@ -74,16 +74,16 @@ def bonds(rs,Nall,ltype,otype,os,res):
         bsplr[n].mlab_source.dataset.point_data.scalars=[os[0][n],os[0][n]]
 
 
-def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=20,size=(5.,5.),setdpi=2000,tofull=True):
+def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=20,size=(5.,5.),setdpi=2000,to3d=True):
     '''
     Plot the lattice
     '''
     sos=os[0]
     bos=[os[1],os[2]]
-    if(tofull):mlab.figure(bgcolor=None,size=(2000,2000))
-    sites(rs,ltype,otype,sos,res,tofull)
-    if(tofull):bonds(rs,Nall,ltype,otype,bos,res)
-    if(tofull):
+    if(to3d):mlab.figure(bgcolor=None,size=(2000,2000))
+    sites(rs,ltype,otype,sos,res,to3d)
+    if(to3d):bonds(rs,Nall,ltype,otype,bos,res)
+    if(to3d):
         mlab.view(azimuth=0.,elevation=0.)
         f=mlab.gcf()
         f.scene._lift()
@@ -100,7 +100,7 @@ def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=20,size=(5.,5
     plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
     plt.show()
     '''
-    if(tofull):
+    if(to3d):
         fig=plt.imshow(arr)
         plt.rcParams["figure.figsize"]=(size)
         plt.axis('off')
