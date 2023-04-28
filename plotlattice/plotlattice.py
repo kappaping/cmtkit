@@ -101,7 +101,7 @@ def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5
         f=mlab.gcf()
         f.scene._lift()
         arr=mlab.screenshot(mode='rgba',antialiased=True)
-#        mlab.show()
+        mlab.show()
         mlab.clf()
         mlab.close()
     '''
