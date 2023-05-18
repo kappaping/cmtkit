@@ -24,7 +24,7 @@ Nk=50
 bzop=False
 ks=bdth.brillouinzone(ltype,uctype,Nk,bzop)[0]
 
-todata=True
+todata=False
 dataks=[[ks[nk][0],ks[nk][1],0.] for nk in range(len(ks))]
 
 dataks=plbd.fermisurface(H,nf,ltype,uctype,Nk)

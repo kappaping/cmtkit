@@ -16,7 +16,7 @@ print(ltc.ltcname(ltype))
 uctype=111
 Nfl=1
 htb=[0.,-1.,0.]
-nf=6.8/12.
+nf=7.99/12.
 print('filling = ',nf)
 H=lambda k:bdth.tbham(k,htb,ltype,uctype,Nfl)
 Nk=50
