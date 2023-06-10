@@ -114,14 +114,14 @@ def paircharge(Pt,r0,r1,Nall):
     '''
     Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
     '''
-    return np.trace(pairdenmat(Pt,r0,r1,Nall))
+    return np.trace(pairdenmat(Pt,r1,r0,Nall))
 
 
 def pairspin(Pt,r0,r1,Nall):
     '''
     Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
     '''
-    return np.array([np.trace(np.dot(pairdenmat(Pt,r0,r1,Nall),(1./2.)*paulimat(n))) for n in [1,2,3]])
+    return np.array([np.trace(np.dot(pairdenmat(Pt,r1,r0,Nall),(1./2.)*paulimat(n))) for n in [1,2,3]])
 
 
 def chargeorder(Pt,rs,Nall,ltype):
