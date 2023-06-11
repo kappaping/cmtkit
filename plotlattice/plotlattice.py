@@ -65,7 +65,7 @@ def bonds(rs,Nall,ltype,otype,os,res):
     elif(otype=='s'):os=[np.array([(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0]]),np.array([(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1]])]
     # Imaginary
     bmp=[np.array([(b[n][0]+b[n][1])/2. for n in range(3)]) for b in bs]    # Middle points of bonds
-    bv=[np.array([b[n][0]-b[n][1] for n in range(3)]) for b in bs]  # Bond vectors
+    bv=[np.array([b[n][1]-b[n][0] for n in range(3)]) for b in bs]  # Bond vectors
     bii=np.array([bmp[nb]-(os[1][nb]/2.)*bv[nb] for nb in range(len(bs))]).transpose()  # Initial point of current cone
     biv=np.array([os[1][nb]*bv[nb] for nb in range(len(bs))]).transpose()   # Length of current cone
     bspli=mlab.quiver3d(bii[0],bii[1],bii[2],biv[0],biv[1],biv[2],color=(0.4660,0.6740,0.1880),mode='cone',scale_factor=1.,resolution=res)
@@ -73,7 +73,7 @@ def bonds(rs,Nall,ltype,otype,os,res):
     bspli.glyph.glyph_source.glyph_source.height=0.6
     # Real
     [bv0,bv1,bv2]=np.array(bv).transpose()
-    [bi0,bi1,bi2]=np.array([[b[n][1] for n in range(3)] for b in bs]).transpose()
+    [bi0,bi1,bi2]=np.array([[b[n][0] for n in range(3)] for b in bs]).transpose()
     bsplr=mlab.quiver3d(bi0,bi1,bi2,bv0,bv1,bv2,colormap='coolwarm',mode='cylinder',scale_factor=1.,resolution=res)
     bsplr.glyph.color_mode='color_by_scalar'
     bsplr.module_manager.scalar_lut_manager.use_default_range=False
