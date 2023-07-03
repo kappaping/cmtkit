@@ -87,7 +87,7 @@ def bonds(rs,Nall,ltype,otype,os,res):
 #        bsplr[n].mlab_source.dataset.point_data.scalars=[os[0][n],os[0][n]]
 
 
-def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),setdpi=2000,to3d=True,show3d=False):
+def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),setdpi=2000,to3d=True,show3d=False,plaz=0.,plel=0.):
     '''
     Plot the lattice
     '''
@@ -97,7 +97,7 @@ def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5
     sites(rs,ltype,otype,sos,res,to3d)
     if(to3d):bonds(rs,Nall,ltype,otype,bos,res)
     if(to3d):
-        mlab.view(azimuth=0.,elevation=0.)
+        mlab.view(azimuth=plaz,elevation=plel)
         f=mlab.gcf()
         f.scene._lift()
         arr=mlab.screenshot(mode='rgba',antialiased=True)

@@ -13,7 +13,7 @@ import plotband as plbd
 
 ltype='ka'
 print(ltc.ltcname(ltype))
-uctype=111
+uctype=23231
 Nfl=1
 htb=[0.,-1.,0.]
 nf=5./12.
@@ -27,7 +27,7 @@ ks=bdth.brillouinzone(ltype,uctype,Nk,bzop)[0]
 todata=False
 dataks=[[ks[nk][0],ks[nk][1],0.] for nk in range(len(ks))]
 
-dataks=plbd.fermisurface(H,nf,ltype,uctype,Nk)
+#dataks=plbd.fermisurface(H,nf,ltype,uctype,Nk)
 
 filetfig='../../figs/bz.pdf'
 tosave=True
