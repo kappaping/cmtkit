@@ -13,18 +13,18 @@ import plotband as plbd
 
 ltype='ka'
 print(ltc.ltcname(ltype))
-uctype=23231
+uctype=111
 Nfl=1
 htb=[0.,-1.,0.]
 nf=5./12.
 print('filling = ',nf)
 H=lambda k:bdth.tbham(k,htb,ltype,uctype,Nfl)
-Nk=50
+Nk=18
 
-bzop=False
+bzop=True
 ks=bdth.brillouinzone(ltype,uctype,Nk,bzop)[0]
 
-todata=False
+todata=True
 dataks=[[ks[nk][0],ks[nk][1],0.] for nk in range(len(ks))]
 
 #dataks=plbd.fermisurface(H,nf,ltype,uctype,Nk)
