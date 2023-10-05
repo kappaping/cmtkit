@@ -90,12 +90,12 @@ def hamsite(H,vs,rs,Nall):
         [termmat(H,(1./2.)*vrm[fl0,fl1],r,fl0,r,fl1,Nall) for fl0 in range(Nall[1]) for fl1 in range(Nall[1])]
 
 
-'''Density matrix and the evaluation of charge and spin orders'''
+'''Functions of density matrix'''
 
 
 def projdenmat(U,n0,n1,Nst):
     '''
-    Generate the density matrix by projecting on the n0-th to n1-th states.
+    Generate the density matrix by projecting on the n0-th to n1-th states of the unitary operator U=[u0,u1,u2,....].
     '''
     UT=U.conj().T
     # Project to only the Noc occupied states
@@ -175,10 +175,6 @@ def setpairspin(Pt,Pr,r0,r1,Nall):
     Set the spin of a pair of lattice sites.
     '''
     [termmat(Pt,(1./2.)*Pr[fl0,fl1],r0,fl0,r1,fl1,Nall) for fl0 in range(Nall[1]) for fl1 in range(Nall[1])]
-
-
-
-
 
 
 

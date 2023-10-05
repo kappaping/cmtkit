@@ -6,24 +6,39 @@ import time
 
 import sys
 sys.path.append('../lattice')
-import lattice as ltc
+import lattice2 as ltc
 sys.path.append('../tightbinding')
-import tightbinding as tb
-import plotlattice as pltc
+import tightbinding2 as tb
+import plotlattice2 as pltc
+import densitymatrix as dm
 
 
-ltype='ka'
+# Lattice structure
+ltype='tr'
 print(ltc.ltcname(ltype))
-Nbl=[2,2,1]
+Nbl=[4,4,1]
+print('System size = ',Nbl)
 Nsl=ltc.slnum(ltype)
-Nltc=[Nbl,Nsl]
-Nfl=2
-Nall=[Nltc,Nfl]
-Nst=tb.stnum(Nall)
-print('State number = ',Nst)
-bc=1
-rs=ltc.ltcsites(Nall[0])
+rs=ltc.ltcsites(Nbl,Nsl)
+Nr=len(rs)
+print('Site number = ',Nr)
+bc=0
+NB,RD=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+nb1ids=ltc.nthneighbors(1,NB)
 
-pltc.plotlattice(rs,Nall,ltype)
+# Flavor and state
+Nfl=2
+Nrfl=[Nr,Nfl]
+Nst=tb.statenum(Nrfl)
+
+filetfig='/home/kappaping/research/figs/testfig.pdf'
+
+'''
+pltc.plotlattice(rs,Nall,ltype,filetfig,show3d=True)
+'''
+
+NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]
+nb1ids=ltc.nthneighbors(1,NB)
+pltc.plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,show3d=True)
 
 
