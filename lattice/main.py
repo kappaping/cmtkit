@@ -3,20 +3,24 @@
 from math import *
 import numpy as np
 import time
+import joblib
 
 import lattice2 as ltc
 
 
-ltype='sq'
+ltype='py'
 print(ltc.ltcname(ltype))
-Nbl=[2,2,1]
+Nbl=[6,6,6]
 Nsl=ltc.slnum(ltype)
 bc=1
 rs=ltc.ltcsites(Nbl,Nsl)
-print(rs)
+
+filet='../../data/lattice/pyrochlore/666_bc_1'
+
 NB,RD=ltc.ltcpairdist(ltype,rs,Nbl,bc)
-print(NB)
-nnbs=ltc.nthneighbors(0,NB)
-print(nnbs)
-nbs=[[NB[nbid0,nbid1] for [nbid0,nbid1] in ltc.nthneighbors(nb,NB)] for nb in range(np.max(NB)+1)]
-print(nbs)
+
+joblib.dump([NB,RD],filet)
+
+#[NB,RD]=joblib.load(filet)
+#print(NB)
+#print(RD)

@@ -3,6 +3,6 @@
 from math import *
 import numpy as np
 
-a=[1,2,3,4,5]
-def gg(n):return n>2
-print(list(filter(gg,a)))
+a=np.array([1,2,3,4,5])
+bs=np.argwhere(a>2)
+print(bs)

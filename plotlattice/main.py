@@ -3,6 +3,7 @@
 from math import *
 import numpy as np
 import time
+import joblib
 
 import sys
 sys.path.append('../lattice')
@@ -14,30 +15,28 @@ import densitymatrix as dm
 
 
 # Lattice structure
-ltype='tr'
+ltype='py'
 print(ltc.ltcname(ltype))
-Nbl=[4,4,1]
+Nbl=[8,8,8]
 print('System size = ',Nbl)
 Nsl=ltc.slnum(ltype)
 rs=ltc.ltcsites(Nbl,Nsl)
 Nr=len(rs)
 print('Site number = ',Nr)
-bc=0
-NB,RD=ltc.ltcpairdist(ltype,rs,Nbl,bc)
-nb1ids=ltc.nthneighbors(1,NB)
+bc=1
+#NB,RD=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+#nb1ids=ltc.nthneighbors(1,NB)
 
-# Flavor and state
-Nfl=2
-Nrfl=[Nr,Nfl]
-Nst=tb.statenum(Nrfl)
 
+filet='../../data/lattice/pyrochlore/888_bc_1'
 filetfig='/home/kappaping/research/figs/testfig.pdf'
 
 '''
 pltc.plotlattice(rs,Nall,ltype,filetfig,show3d=True)
 '''
 
-NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]
+#NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]
+[NB,RD]=joblib.load(filet)
 nb1ids=ltc.nthneighbors(1,NB)
 pltc.plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,show3d=True)
 
