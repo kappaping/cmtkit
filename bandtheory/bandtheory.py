@@ -18,7 +18,7 @@ import tightbinding as tb
 
 
 
-'''Matrix setup'''
+'''Functions for Fourier transform'''
 
 
 def ucsites(ltype,prds):
@@ -93,6 +93,11 @@ def ftham(k,H,Nrfl,RDV,rucs,RUCRP):
     return HFT
 
 
+
+
+'''Band properties'''
+
+
 def fillingchempot(H,nf,ltype,prds,Nk):
     '''
     Compute the chemical potential for a given filling
@@ -105,6 +110,25 @@ def fillingchempot(H,nf,ltype,prds,Nk):
     mu=(ees[Nock-1]+ees[Nock])/2.
     print('mu = ',mu)
     return mu
+
+
+def berrycurv(k,H,dks):
+    '''
+    Compute the Berry curvatures at the momentum k.
+    '''
+    # List the corners of the small grid around k.
+    kcts=[k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]
+    Nkcts=len(kcts)
+    # Obtain the eigenstates at the corner momenta.
+    Hkcts=[H(kct) for kct in kcts]
+    us=[np.linalg.eigh(Hkct)[1].transpose() for Hkct in Hkcts]
+    # Take the inner products between adjacent corners.
+    dus=[[np.vdot(us[(nkct+1)%Nkcts][nub],us[nkct][nub]) for nub in range(us[nkct].shape[0])] for nkct in range(Nkcts)]
+    dups=[[dus[nkct][nub]/abs(dus[nkct][nub]) for nub in range(len(dus[nkct]))] for nkct in range(Nkcts)]
+    deBs=list(np.prod(np.array(dups),axis=0))
+    dBs=[cmath.phase(deBs[nub]) for nub in range(len(deBs))]
+    Bs=[dBs[nub]/(6.*(sqrt(3)/4.)*np.linalg.norm(dks[0])**2) for nub in range(len(dBs))]
+    return [dBs,Bs]
 
 
 
