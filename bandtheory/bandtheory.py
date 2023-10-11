@@ -6,10 +6,12 @@ from math import *
 import cmath as cmt
 import numpy as np
 import sympy
+import joblib
 
 import sys
 sys.path.append('../lattice')
 import lattice as ltc
+import brillouinzone as bz
 sys.path.append('../tightbinding')
 import tightbinding as tb
 
@@ -19,114 +21,90 @@ import tightbinding as tb
 '''Matrix setup'''
 
 
-def ucsites(ltype,uctype):
+def ucsites(ltype,prds):
     '''
     List all of the lattice sites in a unit cell
     '''
-    dictt={
-    111:[np.array([0,0,0])],   # 1 x 1 x 1
-    211:[np.array([n0,0,0]) for n0 in range(2)], # 2 x 1 x 1
-    121:[np.array([0,n1,0]) for n1 in range(2)], # 2 x 1 x 1
-    221:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2)],   # 2 x 2 x 1
-    22221:[np.array([n0,0,0]) for n0 in range(2)],  # sqrt2 x sqrt2 x 1
-    23231:[np.array([n0,n1,0]) for n0 in range(2) for n1 in range(2-n0)]  # sqrt3 x sqrt3 x 1
-    }
-    return [[nr,sl] for nr in dictt[uctype] for sl in range(ltc.slnum(ltype))]
+    # Initialize unit-cell periodicity
+    Nuc=[0,0,0]
+    # Assign the periodicities for the cases with roated unit vectors. aps: Axes with rotated periodicities. p: Periodicity.
+    def setperiod(aps,p):
+        # sqrt2 x sqrt2
+        if(p==22):
+            if(len(aps)==2):dic={1:1,2:2}
+        # sqrt3 x sqrt3
+        elif(p==23):
+            if(len(aps)==2):dic={1:1,2:3}
+        # 2sqrt3 x 2sqrt3
+        elif(p==223):
+            if(len(aps)==2):dic={1:2,2:6}
+        return [dic[(aps[n]-aps[(n+1)%len(aps)])%3] for n in range(len(aps))]
+    aps=[]
+    p=0
+    # Assign periodicity.
+    for n in range(3):
+        # Set periodicity along unroated unit vectors.
+        if(prds[n]<20):Nuc[n]=prds[n]
+        # Find the periodicities for the rotated ones.
+        elif(prds[n]>=20):
+            aps+=[n]
+            p=prds[n]
+    ps=setperiod(aps,p)
+    for n in range(len(aps)):Nuc[aps[n]]=ps[n]
+    # Return: List all of the sites in the unit cell.
+    return Nuc,[[n0*np.array([1,0,0])+n1*np.array([0,1,0])+n2*np.array([0,0,1]),sl] for n0 in range(Nuc[0]) for n1 in range(Nuc[1]) for n2 in range(Nuc[2]) for sl in range(ltc.slnum(ltype))]
 
 
-def ucnums(uctype):
+def ucsiteid(r,prds,Nuc,rucs):
     '''
-    Give the dimensions of the Bravais lattice unit cells
+    Given the periodicity prds of a unit cell, determine the id of the site r in this unit cell.
     '''
-    dictt={
-    111:[1,1,1],  # 1 x 1 x 1
-    211:[2,1,1], # 2 x 1 x 1
-    121:[1,2,1], # 2 x 1 x 1
-    221:[2,2,1], # 2 x 2 x 1
-    22221:[2,1,1], # sqrt2 x sqrt2 x 1
-    23231:[2,2,1] # sqrt3 x sqrt3 x 1
-    }
-    return dictt[uctype]
+    # If the unit cell is unrotated: Assign the ids by modulo the unit cell periodicities in each direction.
+    if(max(prds)<20):return ltc.siteid([np.array([r[0][n]%Nuc[n] for n in range(3)]),r[1]],rucs)
+    # sqrt2 x sqrt2
+    elif(max(prds)==22):return ltc.siteid([np.array([(r[0][0]-r[0][1]%2)%2,0,0]),r[1]],rucs)
+    # sqrt3 x sqrt3
+    elif(max(prds)==23):return ltc.siteid([np.array([(r[0][0]-r[0][1]%3)%3,0,0]),r[1]],rucs)
+    # 2sqrt3 x 2sqrt3
+    elif(max(prds)==223):return ltc.siteid([np.array([(r[0][0]-2*((r[0][1]//2)%3))%6,r[1]%2,0]),r[1]],rucs)
 
 
-def ucstnum(ltype,uctype,Nfl):
+def ftsites(rs,Nr,prds,Nuc,rucs):
     '''
-    State number in the unit cell
+    Given a periodicity prds, determine the lattice-site pairs involved in the Fourier transform between the unit-cell-site pairs.
+    Return: Nruc x Nruc list of list of lattice-site pairs.
     '''
-    return len(ucsites(ltype,uctype))*Nfl
+    Nruc=len(rucs)
+    # List the unit-cell ids for all r in rs
+    rucids=np.array([ucsiteid(rs[rid],prds,Nuc,rucs) for rid in range(Nr)])
+    # List the lattice-site ids for all ruc in rucs
+    rucrids=[ltc.siteid(rucs[rucid],rs) for rucid in range(Nruc)]
+    # Determine the Nruc x Nruc list
+    RUCRP=[[[[rucrids[rucid0],rid1[0]] for rid1 in np.argwhere(rucids==rucid1)] for rucid1 in range(Nruc)] for rucid0 in range(Nruc)]
+    return RUCRP
 
 
-def tbham(k,htb,ltype,uctype,Nfl):
+def ftham(k,H,Nrfl,RDV,rucs,RUCRP):
     '''
-    Tight-binding model in momentum space: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian H
-    v0: Onsite potential
-    t1 and t2: Nearest and second neighbor hoppings
-    The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
+    Fourier transform of the Hamiltonian H to momentum k with a given periodicity prds.
     '''
-    Nalluc=[[ucnums(uctype),ltc.slnum(ltype)],Nfl]
-    rsuc=ucsites(ltype,uctype)
-    H=np.zeros((ucstnum(ltype,uctype,Nfl),ucstnum(ltype,uctype,Nfl)),dtype=complex)
-    for r in rsuc:
-        # Pairs at Bravais lattice site r
-        pairs0=ltc.pairs(r,ucnums(uctype),0,ltype)
-        # Pairs in the unit cell
-        pairsuc=ltc.pairs(r,ucnums(uctype),uctype,ltype)
-        # Add matrix elements for the pairs
-        [tb.termmat(H,(1./2.)*htb[nd]*e**(-1.j*np.dot(k,(ltc.pos(pairs0[nd][npr][0],ltype)-ltc.pos(pairs0[nd][npr][1],ltype)))),pairsuc[nd][npr][0],fl,pairsuc[nd][npr][1],fl,Nalluc) for nd in range(len(pairs0)) for npr in range(len(pairs0[nd])) for fl in range(Nfl)]
-    return H
+    Nruc=len(rucs)
+    HFT=[[sum([H[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(k,RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]
+    return HFT
 
 
-
-
-'''Momentum space setup'''
-
-
-def hskcontour(ltype,uctype):
+def fillingchempot(H,nf,ltype,prds,Nk):
     '''
-    Set the high-symmetry points in the Brillouin zone forming the contour for the band structure.
+    Compute the chemical potential for a given filling
     '''
-    hska=ltc.hskpoints(ltype,uctype)
-    if(ltype=='sq' and (uctype==111 or uctype==221)):
-        return [hska[0],hska[1],hska[3],hska[2],hska[0]]
-    if(uctype==211 or uctype==121):
-        return [hska[0],hska[1],hska[3],hska[0],hska[2],hska[3],hska[0]]
-    elif((ltype=='tr' or ltype=='ka') and (uctype==111 or uctype==221)):
-        return [hska[0],hska[1],[hska[5][0],-hska[5][1]],hska[0]]
-    elif((ltype=='tr' or ltype=='ka') and uctype==23231):
-        return [hska[0],hska[1],[hska[5][0],hska[5][1]],hska[0]]
-
-
-def brillouinzone(ltype,uctype,Nk,bzop=False):
-    '''
-    The momenta in the Brillouin zone.
-    '''
-    ks=[]
-    dks=[]
-    if(bzop==True): dkb=1e-12
-    else: dkb=0.
-    if(ltype=='sq' or uctype==211 or uctype==121):
-        kcs=[ltc.hskpoints(ltype,uctype)[n][1] for n in [1,2]]
-        g0,g1=kcs[0],kcs[1]
-        for n0 in np.linspace(-2.,2.,num=2*Nk+1):
-            for n1 in np.linspace(-2.,2.,num=2*Nk+1):
-                k=n0*g0+n1*g1
-                if(-np.linalg.norm(kcs[0])**2-1e-14<=np.dot(k,kcs[0])<np.linalg.norm(kcs[0])**2+1e-14-dkb and -np.linalg.norm(kcs[1])**2-1e-14<=np.dot(k,kcs[1])<np.linalg.norm(kcs[1])**2+1e-14-dkb):
-                    ks.append(k)
-        dks=[(1./(2.*Nk))*ltc.hskpoints(ltype,uctype)[n][1] for n in [3,4]]
-    elif((ltype=='tr' or ltype=='ka') and (uctype==111 or uctype==221 or uctype==23231)):
-        kcs=[ltc.hskpoints(ltype,uctype)[n][1] for n in [1,2,3]]
-        g0,g1=kcs[0],kcs[1]
-        for n0 in np.linspace(-2.,2.,num=2*Nk+1):
-            for n1 in np.linspace(-2.,2.,num=2*Nk+1):
-                k=n0*g0+n1*g1
-                if(-np.linalg.norm(kcs[0])**2-1e-14<=np.dot(k,kcs[0])<np.linalg.norm(kcs[0])**2+1e-14-dkb and -np.linalg.norm(kcs[1])**2-1e-14<=np.dot(k,kcs[1])<np.linalg.norm(kcs[1])**2+1e-14-dkb and -np.linalg.norm(kcs[2])**2-1e-14<=np.dot(k,kcs[2])<np.linalg.norm(kcs[2])**2+1e-14-dkb):
-                    ks.append(k)
-        dks=[(1./(2.*Nk))*ltc.hskpoints(ltype,uctype)[n][1] for n in [4,5,6]]
-    return [ks,dks]
-
-
-
-
+    ks=bz.listbz(ltype,prds,Nk,True)[0]
+    Hks=np.array([H(k) for k in ks])
+    ees=list(np.linalg.eigvalsh(Hks).flatten())
+    ees.sort()
+    Nock=round(nf*len(ees))
+    mu=(ees[Nock-1]+ees[Nock])/2.
+    print('mu = ',mu)
+    return mu
 
 
 

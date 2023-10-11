@@ -4,6 +4,7 @@
 
 from math import *
 import numpy as np
+import time
 
 import square
 import triangular
@@ -36,11 +37,11 @@ def blvecs(ltype):
     elif(ltype=='py'):return pyrochlore.blvecs()
 
 
-def ltcsites(Nltc):
+def ltcsites(Nbl,Nsl):
     '''
     List all of the lattice sites
     '''
-    return [[np.array([n0,n1,n2]),sl] for n0 in range(Nltc[0][0]) for n1 in range(Nltc[0][1]) for n2 in range(Nltc[0][2]) for sl in range(Nltc[1])]
+    return [[np.array([n0,n1,n2]),sl] for n0 in range(Nbl[0]) for n1 in range(Nbl[1]) for n2 in range(Nbl[2]) for sl in range(Nsl)]
 
 
 def slvecs(ltype):
@@ -60,13 +61,14 @@ def slnum(ltype):
     return np.shape(slvecs(ltype))[0]
 
 
-def rid(r,Nltc):
+def siteid(r,rs):
     '''
-    Indices for the lattice site r
+    Indices for the lattice site r in the list rs
     r=[nr,sl]: Lattice site at Bravais lattice site nr and sublattice sl
-    Nltc=[Nbl,Nsl]: Bravais lattice dimension, sublattice number
     '''
-    return Nltc[1]*(Nltc[0][2]*(Nltc[0][1]*r[0][0]+r[0][1])+r[0][2])+r[1]
+    for rn in range(len(rs)):
+        rt=rs[rn]
+        if(np.array_equal(r[0],rt[0]) and r[1]==rt[1]):return rn
 
 
 def pos(r,ltype):
@@ -74,9 +76,9 @@ def pos(r,ltype):
     Site position
     r=[nr,sl]: Lattice site index
     nr: Bravais lattice site index
-    sls: Sublattice site index
+    sl: Sublattice site index
     '''
-    return np.dot(np.array(r[0]),blvecs(ltype))+slvecs(ltype)[r[1]]
+    return np.dot(r[0],blvecs(ltype))+slvecs(ltype)[r[1]]
 
 
 def cyc(nr,Nbl,bc):
@@ -109,79 +111,68 @@ def trsl(r,ntr,Nbl,bc):
     return [cyc(r[0]+ntr,Nbl,bc),r[1]]
 
 
-def pairdist(ltype,r0,r1,Nbl,bc):
+def periodictrsl(Nbl,bc,trns=[np.array([1,0,0]),np.array([0,1,0]),np.array([0,0,1])]):
     '''
-    Measure the distance between a pair of sites r0 and r1.
+    List all of the zeroth and first periodic translations under the boundary condition bc.
     '''
-    # List all of the first periodic translations.
     nptrs=[np.array([0,0,0])]
     if(bc==1):
-        if(Nbl[0]>1):nptrs+=[nptr+sgn*np.array([Nbl[0],0,0]) for sgn in [-1,1] for nptr in nptrs]
-        if(Nbl[1]>1):nptrs+=[nptr+sgn*np.array([0,Nbl[1],0]) for sgn in [-1,1] for nptr in nptrs]
-        if(Nbl[2]>1):nptrs+=[nptr+sgn*np.array([0,0,Nbl[2]]) for sgn in [-1,1] for nptr in nptrs]
-    # List all of the first periodic translations of r1 and compute their distances with r0.
-    r1ptrs=[trsl(r1,nptr,Nbl,0) for nptr in nptrs]
-    rds=np.array([np.linalg.norm(pos(r0,ltype)-pos(r1ptr,ltype)) for r1ptr in r1ptrs])
-    # Define the distance as the minimal result.
-    rd=np.amin(rds)
+        if(Nbl[0]>1):nptrs+=[nptr+sgn*Nbl[0]*trns[0] for sgn in [-1,1] for nptr in nptrs]
+        if(Nbl[1]>1):nptrs+=[nptr+sgn*Nbl[1]*trns[1] for sgn in [-1,1] for nptr in nptrs]
+        if(Nbl[2]>1):nptrs+=[nptr+sgn*Nbl[2]*trns[2] for sgn in [-1,1] for nptr in nptrs]
 
-    return rd
+    return nptrs
 
 
-def ltcpairdist(ltype,rs,Nbl,bc):
+def pairdist(ltype,r0,r1,totrsl=False,nptrs=[]):
     '''
-    List all of the pair distances on the lattice. Return the matrices of neighbor indices NB and distances RD.
+    Measure the distance between a pair of sites r0 and r1.
+    Return: [Minimal distance, all r1s with minimal distance,r0 - minimal-distance r1]
+    '''
+    # No translation.
+    if(totrsl==False):return np.linalg.norm(pos(r0,ltype)-pos(r1,ltype))
+    # With periodic translations.
+    elif(totrsl):
+        # List all of the first periodic translations of r1 and compute their distances with r0.
+        r1ptrs=[[r1[0]+nptr,r1[1]] for nptr in nptrs]
+        rds=np.array([pairdist(ltype,r0,r1ptr) for r1ptr in r1ptrs])
+        # Define the distance as the minimal result.
+        rdmin=min(rds)
+        r1dmids=np.argwhere(abs(rds-rdmin)<1e-12)
+        r1dms=[r1ptrs[r1dmid[0]] for r1dmid in r1dmids]
+        rdvdms=[pos(r0,ltype)-pos(r1ptrs[r1dmid[0]],ltype) for r1dmid in r1dmids]
+        return [rdmin,r1dms,rdvdms]
+
+
+def ltcpairdist(ltype,rs,Nbl,bc,tordv=False):
+    '''
+    List all of the pair distances on the lattice.
+    Return: The matrices of neighbor indices NB and distances RD.
     '''
     # Compute all of the pair distances on the lattice.
-    RD=np.array([[pairdist(ltype,r0,r1,Nbl,bc) for r0 in rs] for r1 in rs])
+    nptrs=periodictrsl(Nbl,bc)
+    RDS=[[pairdist(ltype,r0,r1,True,nptrs) for r1 in rs] for r0 in rs]
+    RD=[[RDS[rid0][rid1][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
+    RDV=[[RDS[rid0][rid1][2][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
     # Determine the distances at the n-th neighbors.
-    rds=sorted(list(RD[0]))
+    rds=sorted(RD[0])
     rnbs=[]
     rdt=-1.
     for rd in rds:
         if(rd-rdt>1e-12):
             rnbs+=[rd]
             rdt=rd
+    rnbs=np.array(rnbs)
     # Determine the neighbor index n for all of the pairs on the lattice.
-    def neighborid(rd,rnbs):
-        for nb in range(len(rnbs)):
-            if(abs(rd-rnbs[nb]<1e-12)):
-                return nb
-    NB=np.array([[neighborid(rd,rnbs) for rd in row] for row in RD])
-
-    return NB,RD
+    NB=np.array([[abs(rnbs-rd).argmin() for rd in row] for row in RD])
+    RD=np.array(RD)
+    RDV=np.array(RDV)
+    if(tordv==False):return NB,RD
+    elif(tordv):return NB,RD,RDV
 
 
-''''''
-
-
-def pairs(r,Nbl,bc,ltype):
-    '''
-    The pairs between a lattice site r = [nr,sl] and itself, nearest neighbors, and second neighbors
-    r=[nr,sl]: Lattice site index
-    nr: Bravais lattice site index
-    Nbl=[N1,N2,N3]: Bravais lattice dimension
-    bc: Boundary condition
-    '''
-    if(ltype=='sq'):return square.pairs(r,Nbl,bc)
-    elif(ltype=='tr'):return triangular.pairs(r,Nbl,bc)
-    elif(ltype=='ka'):return kagome.pairs(r,Nbl,bc)
-    elif(ltype=='py'):return pyrochlore.pairs(r,Nbl,bc)
-
-
-'''Original Brillouin zone'''
-
-
-def hskpoints(ltype,uctype):
-    '''
-    List the high-symmetry points of the Brillouin zone
-    '''
-    # Square lattice: [Gamma,X,Y,M1,M2]
-    if(ltype=='sq'):return square.hskpoints(uctype)
-    # Triangular lattice: [Gamma,M1,M2,M3,K1,K2,K3]
-    elif(ltype=='tr'):return triangular.hskpoints(uctype)
-    # Kagome lattice: [Gamma,M1,M2,M3,K1,K2,K3]
-    elif(ltype=='ka'):return kagome.hskpoints(uctype)
+def nthneighbors(nb,NB):
+    return np.argwhere(NB==nb).tolist()
 
 
 

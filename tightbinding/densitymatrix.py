@@ -7,8 +7,8 @@ import numpy as np
 
 import sys
 sys.path.append('../lattice')
-import lattice2 as ltc
-import tightbinding2 as tb
+import lattice as ltc
+import tightbinding as tb
 
 
 
@@ -23,25 +23,18 @@ def projdenmat(U,n0,n1,Nst):
     return np.round(np.linalg.multi_dot([U,D,UT]),18)
 
 
-def pairdenmat(P,rid0,rid1,Nfl):
-    '''
-    Generate the 2x2 density matrix of a pair of lattice sites with indices rid0 and rid1.
-    '''
-    return np.array([[P[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl)] for fl1 in range(Nfl)] for fl0 in range(Nfl)])
-        
-
 def paircharge(P,rid0,rid1,Nfl):
     '''
     Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
     '''
-    return np.trace(pairdenmat(P,rid0,rid1,Nfl))
+    return np.trace(tb.pairmat(P,rid0,rid1,Nfl))
 
 
 def pairspin(P,rid0,rid1,Nfl):
     '''
     Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
     '''
-    return np.array([np.trace(np.dot(pairdenmat(P,rid0,rid1,Nfl),(1./2.)*tb.paulimat(n))) for n in [1,2,3]])
+    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*tb.paulimat(n))) for n in [1,2,3]])
 
 
 def chargeorder(P,nb1ids,Nrfl):

@@ -1,7 +1,10 @@
 # Create the data.
-from mayavi import mlab
+from math import *
+import numpy as np
 
-mlab.plot3d([1.,2.],[1.,2.],[1.,2.],tube_radius=0.05,tube_sides=20)
-mlab.points3d([1.,2.],[1.,2.],[1.,2.],resolution=20)
-mlab.quiver3d([1.,2.],[1.,2.],[1.,2.],[1.,1.],[0.,0.],[0.,0.],mode='arrow',scale_factor=1.,resolution=20)
-mlab.show()
+A=np.array([[n,n+1] for n in range(5)])
+print(A)
+B=A.reshape(-1,1,2)
+print(B)
+C=np.concatenate([B[:-1],B[1:]],axis=1)
+print(C)

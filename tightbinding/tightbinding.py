@@ -15,51 +15,76 @@ import lattice as ltc
 '''Matrix setup'''
 
 
-def stid(r,fl,Nall):
+def stateid(rid,fl,Nfl):
     '''
     Matrix indices for the fermion with fl at site r
-    r: Lattice site
-    flavor: Flavor index
-    Nall=[Nltc,Nfl]: Lattice dimension, flavor number
+    rid: Index of lattice site
+    fl: Flavor index
+    Nfl: Flavor number
     '''
-    return Nall[1]*ltc.rid(r,Nall[0])+fl
+    return Nfl*rid+fl
 
 
-def stnum(Nall):
+def statenum(Nrfl):
     '''
     State number
     '''
-    return Nall[0][0][0]*Nall[0][0][1]*Nall[0][0][2]*Nall[0][1]*Nall[1]
+    return Nrfl[0]*Nrfl[1]
 
 
-def termmat(Mt,mt,r0,fl0,r1,fl1,Nall):
+def termmat(Mt,mt,rid0,fl0,rid1,fl1,Nfl):
     '''
     Assign matrix elements: Assign the coupling mt between states (r0,fl0) and (r1,fl1) to the matrix Mt under Hermitian condition
     r=[nr,sl]: Lattice site at Bravais lattice site nr and sublattice sl
     fl: Flavor index
     Nall=[Nbl,Nsl,Nfl]: Bravais lattice dimension, sublattice number, flavor number
     '''
-    Mt[stid(r0,fl0,Nall),stid(r1,fl1,Nall)]+=mt
-    Mt[stid(r1,fl1,Nall),stid(r0,fl0,Nall)]+=np.conj(mt)
+    Mt[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)]+=mt
+    Mt[stateid(rid1,fl1,Nfl),stateid(rid0,fl0,Nfl)]+=np.conj(mt)
 
 
 '''Set Hamiltonian'''
 
 
-def tbham(htb,rs,Nall,bc,ltype):
+def tbham(ts,NB,Nfl):
     '''
-    Tight-binding Hamiltonian: Assign the couplings htb=[v0,-t1,-t2] to the Hamiltonian H.
-    v0: Onsite potential
-    t1 and t2: Nearest and second neighbor hoppings
-    The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
+    Tight-binding Hamiltonian: Assign the hoppings ts=[t0,t1,t2,....] to the Hamiltonian H.
     '''
-    H=np.zeros((stnum(Nall),stnum(Nall)),dtype=complex)
-    for r in rs:
-        # Pairs at Bravais lattice site bls
-        pairst=ltc.pairs(r,Nall[0][0],bc,ltype)
-        # Add matrix elements for the pairs
-        [termmat(H,(1./2.)*htb[nd],pairt[0],fl,pairt[1],fl,Nall) for nd in range(len(pairst)) for pairt in pairst[nd] for fl in range(Nall[1])]
+    # Construct a list of hoppings tnbs=[ts,0,0,....] with the length matching the number of all neighboring distances.
+    maxnb=np.max(NB)
+    tnbs=ts+[0. for n in range(maxnb-(len(ts)-1))]
+    # Construct the tight-binding Hamiltonian with the hoppings assigned by the neighboring distances.
+    H=np.array([[tnbs[nb]*(fl0==fl1) for nb in row for fl1 in range(Nfl)] for row in NB for fl0 in range(Nfl)],dtype=complex)
     return H
+
+
+def sitedenimb(H,t0,Nrfl):
+    '''
+    Site-density imbalance
+    '''
+    [setpair(H,[0.,0.,0.,t0],rid,rid,Nrfl[1]) for rid in range(Nrfl[0])]
+
+
+def dendenint(us,NB,RD,Nfl,utype='hu',delta=0.2):
+    '''
+    Density-density interaction: Define the density-density interactions.
+    Return a matrix with the same indices as the tight-binding Hamiltonian.
+    The matrix element at [(r0,fl0),(r1,fl1)] corresponds to the interaction u between the densities n(r0,fl0,) and n(r1,fl1).
+    If utype=='hu': Assign the Hubbard interactions from the input us=[u0,u1,u2,....]
+    Elif utype=='co': Assign the screened Coulomb interaction u(r)=(u0/sqrt((r/delta)**2+1))*exp(-r/delta) with screening length scale delta.
+    '''
+    if(utype=='hu'):
+        # Construct a list of interactions unbs=[us,0,0,....] with the length matching the number of all neighboring distances.
+        maxnb=np.max(NB)
+        unbs=us+[0. for n in range(maxnb-(len(us)-1))]
+        # Construct the interaction matrix with the elements assigned by the neighboring distances.
+        UINT=np.array([[unbs[nb] for nb in row for fl1 in range(Nfl)] for row in NB for fl0 in range(Nfl)])
+    elif(utype=='co'):
+        # Construct the interaction matrix with the elements assigned by the Coulomb repulsion at the neighboring distances.
+        UINT=np.array([[(us[0]/sqrt((rd/delta)**2+1))*exp(-rd/delta) for rd in row for fl1 in range(Nfl)] for row in RD for fl0 in range(Nfl)])
+    for n in range(UINT.shape[0]):
+        UINT[n,n]=0.
+    return UINT
 
 
 def paulimat(n):
@@ -76,105 +101,34 @@ def paulimat(n):
         return np.array([[1.,0.],[0.,-1.]])
 
 
-def hamsite(H,vs,rs,Nall):
+def pairmat(M,rid0,rid1,Nfl):
     '''
-    Onsite potentials: Assign the couplings vs=[v[r0],v[r1],....] to the Hamiltonian H.
-    v[r]=[v0[r],v1[r],v2[r],v3[r]]: Set the potential v0[r]*sigma_0+v1[r]*sigma_1+v2[r]*sigma_2+v3[r]*sigma_3 to the site r
-    The factor 1/2 is to cancel double counting from the Hermitian assignment in termmat
+    Generate the Nfl x Nfl matrix of a pair of lattice sites with indices rid0 and rid1.
     '''
-    for r in rs:
-        # Onsite potential
-        vr=vs[ltc.rid(r,Nall[0])]
-        vrm=(1./2.)*(vr[0]*paulimat(0)+vr[1]*paulimat(1)+vr[2]*paulimat(2)+vr[3]*paulimat(3))
-        # Add matrix elements for the pairs
-        [termmat(H,(1./2.)*vrm[fl0,fl1],r,fl0,r,fl1,Nall) for fl0 in range(Nall[1]) for fl1 in range(Nall[1])]
-
-
-'''Functions of density matrix'''
-
-
-def projdenmat(U,n0,n1,Nst):
-    '''
-    Generate the density matrix by projecting on the n0-th to n1-th states of the unitary operator U=[u0,u1,u2,....].
-    '''
-    UT=U.conj().T
-    # Project to only the Noc occupied states
-    D=np.diag(np.array(n0*[0.]+(n1-n0)*[1.]+(Nst-n1)*[0.]))
-    return np.linalg.multi_dot([U,D,UT])
-
-
-def pairdenmat(P,r0,r1,Nall):
-    '''
-    Generate the 2x2 density matrix of a pair of lattice sites.
-    '''
-    return np.array([[P[stid(r0,fl0,Nall),stid(r1,fl1,Nall)] for fl1 in range(Nall[1])] for fl0 in range(Nall[1])])
+    return np.array([[M[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)] for fl1 in range(Nfl)] for fl0 in range(Nfl)])
         
 
-def paircharge(Pt,r0,r1,Nall):
+def setpair(M,M01,rid0,rid1,Nfl):
     '''
-    Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
+    Set the matrix for a pair of lattice sites.
+    M01: Matrix of the pairs rid0 and rid1.
+    1/2 factors: Compensate with the Hermitian assignment in termmat.
     '''
-    return np.trace(pairdenmat(Pt,r0,r1,Nall))
+    [termmat(M,(1./2.)*M01[fl0,fl1],rid0,fl0,rid1,fl1,Nfl) for fl0 in range(Nfl) for fl1 in range(Nfl)]
 
 
-def pairspin(Pt,r0,r1,Nall):
+def setpairpm(M,v,rid0,rid1,Nfl):
     '''
-    Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
+    Set the matrix for a pair of lattice sites.
+    v=[v0,v1,v2,v3]: Set the matrix v0*sigma_0+v1*sigma_1+v2*sigma_2+v3*sigma_3 to the pairs rid0 and rid1.
+    1/2 factors: Compensate with the Hermitian assignment in termmat.
     '''
-    return np.array([np.trace(np.dot(pairdenmat(Pt,r0,r1,Nall),(1./2.)*paulimat(n))) for n in [1,2,3]])
+    V=v[0]*paulimat(0)+v[1]*paulimat(1)+v[2]*paulimat(2)+v[3]*paulimat(3)
+    [termmat(M,(1./2.)*V[fl0,fl1],rid0,fl0,rid1,fl1,Nfl) for fl0 in range(Nfl) for fl1 in range(Nfl)]
 
 
-def chargeorder(Pt,rs,Nall,ltype):
-    '''
-    Compute the charge order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
-    '''
-    # Site order
-    schs=[paircharge(Pt,r,r,Nall).real for r in rs]
-    # Extract the order as the deviation from the average
-    schsavg=sum(schs)/len(schs)
-    schs=[schs[nr]-schsavg for nr in range(len(schs))]
-    schsa=[abs(schs[nr]) for nr in range(len(schs))]
-    schsmax=max(schsa)
-    # Bond order
-    bc=1
-    bchs=[paircharge(Pt,pairt[0],pairt[1],Nall) for r in rs for pairt in ltc.pairs(r,Nall[0][0],bc,ltype)[1]]
-    # Extract the order as the deviation from the average
-    bchsavg=sum(bchs)/len(bchs)
-    bchs=[bchs[nr]-bchsavg for nr in range(len(bchs))]
-    # Distinguish the real and imaginary bonds
-    bchsr=[bchs[nb].real for nb in range(len(bchs))]
-    bchsra=[abs(bchsr[nb]) for nb in range(len(bchsr))]
-    bchsi=[bchs[nb].imag for nb in range(len(bchs))]
-    bchsia=[abs(bchsi[nb]) for nb in range(len(bchsi))]
-    bchsrmax,bchsimax=max(bchsra),max(bchsia)
-    return [[schs,bchsr,bchsi],[schsmax,bchsrmax,bchsimax]]
 
 
-def spinorder(Pt,rs,Nall,ltype):
-    '''
-    Compute the spin order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
-    '''
-    # Site order
-    ssps=[pairspin(Pt,r,r,Nall).real for r in rs]
-    sspsn=[np.linalg.norm(ssps[nr]) for nr in range(len(ssps))]
-    sspsmax=max(sspsn)
-    # Bond order
-    bc=1
-    bsps=[pairspin(Pt,pairt[0],pairt[1],Nall) for r in rs for pairt in ltc.pairs(r,Nall[0][0],bc,ltype)[1]]
-    # Distinguish the real and imaginary bonds
-    bspsr=[bsps[nb].real for nb in range(len(bsps))]
-    bspsi=[bsps[nb].imag for nb in range(len(bsps))]
-    bspsrn=[np.linalg.norm(bspsr[nb]) for nb in range(len(bspsr))]
-    bspsin=[np.linalg.norm(bspsi[nb]) for nb in range(len(bspsi))]
-    bspsrmax,bspsimax=max(bspsrn),max(bspsin)
-    return [[ssps,bspsr,bspsi],[sspsmax,bspsrmax,bspsimax]]
-
-
-def setpairspin(Pt,Pr,r0,r1,Nall):
-    '''
-    Set the spin of a pair of lattice sites.
-    '''
-    [termmat(Pt,(1./2.)*Pr[fl0,fl1],r0,fl0,r1,fl1,Nall) for fl0 in range(Nall[1]) for fl1 in range(Nall[1])]
 
 
 

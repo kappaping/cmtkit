@@ -2,7 +2,14 @@
 
 from math import *
 import numpy as np
+import lattice2 as ltc
+import brillouinzone as bz
 
-a=np.array([1,2,3,4,5])
-bs=np.argwhere(a>2)
-print(bs)
+ltype='tr'
+prds=[1,1,1]
+
+#print(bz.ucblvecs(ltype,prds))
+#print(bz.hskpoints(ltype,prds))
+a=np.array([True,True,True])
+b=np.array([1,1,1])
+print('a=b: ',np.array_equal(a,b))

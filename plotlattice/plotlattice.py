@@ -12,6 +12,7 @@ sys.path.append('../lattice')
 import lattice as ltc
 sys.path.append('../tightbinding')
 import tightbinding as tb
+import densitymatrix as dm
 
 
 
@@ -23,10 +24,14 @@ def sites(rs,ltype,otype,os,res,to3d):
     '''
     Lattice site positions.
     '''
+    # Compute the positions of all lattice sites.
     ss=np.array([ltc.pos(r,ltype) for r in rs])
     [r0s,r1s,r2s]=ss.transpose()
+    # For lattice plot: Set all of the order values = 0.
     if(otype=='l'):os=np.array([0. for nr in range(len(rs))])
+    # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(otype=='c'):os=np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os])
+    # Plot
     if(to3d):
         if(otype=='l' or otype=='c'):
             sspl=mlab.points3d(r0s,r1s,r2s,colormap='coolwarm',resolution=res,scale_factor=0.5)
@@ -53,14 +58,21 @@ def sites(rs,ltype,otype,os,res,to3d):
             plt.clim(-1.,1.)
 
 
-def bonds(rs,Nall,ltype,otype,os,res):
+def bonds(rs,nb1ids,Nbl,ltype,bc,otype,os,res):
     '''
     Lattice bond positions.
     '''
-    # Pairs at Bravais lattice site bls
-    bc=0
-    bs=[[ltc.pos(pairt[0],ltype),ltc.pos(pairt[1],ltype)] for r in rs for pairt in ltc.pairs(r,Nall[0][0],bc,ltype)[1]]
+    # Set the non-periodic bond positions for the plotting
+    rd1=min([np.linalg.norm(ltc.pos(rs[pair[0]],ltype)-ltc.pos(rs[pair[1]],ltype)) for pair in nb1ids])
+    bs=[]
+    nptrs=ltc.periodictrsl(Nbl,bc)
+    for pair in nb1ids:
+        r0,r1=rs[pair[0]],rs[pair[1]]
+        r1dms=ltc.pairdist(ltype,r0,r1,True,nptrs)[1]
+        bs+=[[ltc.pos(r0,ltype),ltc.pos(r1dm,ltype)] for r1dm in r1dms]
+    # For lattice plot: Set all of the order values = 0.
     if(otype=='l'):os=[np.array([0. for nb in range(len(bs))]),np.array([0. for nb in range(len(bs))])]
+    # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(otype=='c'):os=[np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os[0]]),np.array([(abs(ch)**0.4)*np.sign(ch) for ch in os[1]])]
     elif(otype=='s'):os=[np.array([(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0]]),np.array([(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1]])]
     # Imaginary
@@ -87,7 +99,7 @@ def bonds(rs,Nall,ltype,otype,os,res):
 #        bsplr[n].mlab_source.dataset.point_data.scalars=[os[0][n],os[0][n]]
 
 
-def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),setdpi=2000,to3d=True,show3d=False,plaz=0.,plel=0.):
+def plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),setdpi=2000,to3d=True,show3d=False,plaz=0.,plel=0.):
     '''
     Plot the lattice
     '''
@@ -95,7 +107,7 @@ def plotlattice(rs,Nall,ltype,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5
     bos=[os[1],os[2]]
     if(to3d):mlab.figure(bgcolor=None,size=(2000,2000))
     sites(rs,ltype,otype,sos,res,to3d)
-    if(to3d):bonds(rs,Nall,ltype,otype,bos,res)
+    if(to3d):bonds(rs,nb1ids,Nbl,ltype,bc,otype,bos,res)
     if(to3d):
         mlab.view(azimuth=plaz,elevation=plel)
         f=mlab.gcf()

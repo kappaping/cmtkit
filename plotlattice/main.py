@@ -7,17 +7,17 @@ import joblib
 
 import sys
 sys.path.append('../lattice')
-import lattice2 as ltc
+import lattice as ltc
 sys.path.append('../tightbinding')
-import tightbinding2 as tb
-import plotlattice2 as pltc
+import tightbinding as tb
+import plotlattice as pltc
 import densitymatrix as dm
 
 
 # Lattice structure
-ltype='py'
+ltype='ka'
 print(ltc.ltcname(ltype))
-Nbl=[8,8,8]
+Nbl=[6,6,1]
 print('System size = ',Nbl)
 Nsl=ltc.slnum(ltype)
 rs=ltc.ltcsites(Nbl,Nsl)
@@ -35,8 +35,8 @@ filetfig='/home/kappaping/research/figs/testfig.pdf'
 pltc.plotlattice(rs,Nall,ltype,filetfig,show3d=True)
 '''
 
-#NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]
-[NB,RD]=joblib.load(filet)
+NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]
+#[NB,RD]=joblib.load(filet)
 nb1ids=ltc.nthneighbors(1,NB)
 pltc.plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,show3d=True)
 

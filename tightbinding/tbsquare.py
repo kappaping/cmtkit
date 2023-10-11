@@ -7,8 +7,8 @@ import numpy as np
 
 import sys
 sys.path.append('../lattice')
-import lattice2 as ltc
-import tightbinding2 as tb
+import lattice as ltc
+import tightbinding as tb
 
 
 
@@ -26,15 +26,15 @@ def spinlessbhz(t,lda,m,rs,nb1ids,Nbl,Nrfl,ltype,bc):
     # Initial zero matrix
     H=np.zeros((tb.statenum(Nrfl),tb.statenum(Nrfl)),dtype=complex)
     # Onsite effective mass
-    [tb.setpair(H,[0.,0.,0.,m],rid,rid,Nrfl[1]) for rid in range(Nrfl[0])]
+    [tb.setpairpm(H,[0.,0.,0.,m],rid,rid,Nrfl[1]) for rid in range(Nrfl[0])]
     # Tight-binding hoppings 
-    [tb.setpair(H,[0.,0.,0.,-t],pair[0],pair[1],Nrfl[1]) for pair in nb1ids]
+    [tb.setpairpm(H,[0.,0.,0.,-t],pair[0],pair[1],Nrfl[1]) for pair in nb1ids]
     # Flavor-exchange hopping
     for pair in nb1ids:
         r0,r1=rs[pair[0]],rs[pair[1]]
         nptrs=ltc.periodictrsl(Nbl,bc)
-        r1dm=ltc.pairdist(ltype,r0,r1,True,nptrs,True)[1][0]
-        tb.setpair(H,[0.]+list(1.j*lda*(ltc.pos(r0,ltype)-ltc.pos(r1dm,ltype))),pair[0],pair[1],Nrfl[1])
+        r1dm=ltc.pairdist(ltype,r0,r1,True,nptrs)[1][0]
+        tb.setpairpm(H,[0.]+list(1.j*lda*(ltc.pos(r0,ltype)-ltc.pos(r1dm,ltype))),pair[0],pair[1],Nrfl[1])
     return H
 
 

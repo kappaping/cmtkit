@@ -5,21 +5,25 @@ import numpy as np
 import time
 import joblib
 
-import lattice2 as ltc
+import lattice as ltc
 
 
-ltype='py'
+ltype='sq'
 print(ltc.ltcname(ltype))
-Nbl=[6,6,6]
+Nbl=[3,3,1]
 Nsl=ltc.slnum(ltype)
 bc=1
 rs=ltc.ltcsites(Nbl,Nsl)
 
 filet='../../data/lattice/pyrochlore/666_bc_1'
 
-NB,RD=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,tordv=True)
+print(NB)
+print(RD)
+print(RDV)
+print('rdv0 = ',[RDV[0,n] for n in range(np.shape(RDV)[0])])
 
-joblib.dump([NB,RD],filet)
+#joblib.dump([NB,RD],filet)
 
 #[NB,RD]=joblib.load(filet)
 #print(NB)
