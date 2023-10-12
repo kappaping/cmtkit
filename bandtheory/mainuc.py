@@ -7,13 +7,13 @@ import joblib
 
 import sys
 sys.path.append('../../cmt_code/lattice')
-import lattice2 as ltc
+import lattice as ltc
 sys.path.append('../../cmt_code/tightbinding')
-import tightbinding2 as tb
+import tightbinding as tb
 import densitymatrix as dm
 sys.path.append('../../cmt_code/plotlattice')
-import plotlattice2 as pltc
-import bandtheory2 as bdth
+import plotlattice as pltc
+import bandtheory as bdth
 
 
 # Lattice structure
@@ -45,8 +45,9 @@ P=np.zeros((Nst,Nst))
 
 chos=dm.chargeorder(P,nb1ids,Nrfl)[0]
 
-periods=[223,223,1]
-chos[0]=[bdth.ucsiteid(r,ltype,periods) for r in rs]
+prds=[223,223,1]
+Nuc,rucs=bdth.ucsites(ltype,prds)
+chos[0]=[bdth.ucsiteid(r,prds,Nuc,rucs) for r in rs]
 cavg=sum(chos[0])/len(chos[0])
 chos[0]=[cho-cavg for cho in chos[0]]
 cmax=max(chos[0])

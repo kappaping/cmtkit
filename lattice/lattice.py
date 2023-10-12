@@ -8,6 +8,7 @@ import time
 
 import square
 import triangular
+import honeycomb
 import kagome
 import pyrochlore
 
@@ -23,6 +24,7 @@ def ltcname(ltype):
     '''
     if(ltype=='sq'):return square.ltcname()
     elif(ltype=='tr'):return triangular.ltcname()
+    elif(ltype=='ho'):return honeycomb.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
     elif(ltype=='py'):return pyrochlore.ltcname()
 
@@ -33,6 +35,7 @@ def blvecs(ltype):
     '''
     if(ltype=='sq'):return square.blvecs()
     elif(ltype=='tr'):return triangular.blvecs()
+    elif(ltype=='ho'):return honeycomb.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
     elif(ltype=='py'):return pyrochlore.blvecs()
 
@@ -50,6 +53,7 @@ def slvecs(ltype):
     '''
     if(ltype=='sq'):return square.slvecs()
     elif(ltype=='tr'):return triangular.slvecs()
+    elif(ltype=='ho'):return honeycomb.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()
     elif(ltype=='py'):return pyrochlore.slvecs()
 

@@ -15,7 +15,7 @@ import densitymatrix as dm
 
 
 # Lattice structure
-ltype='ka'
+ltype='ho'
 print(ltc.ltcname(ltype))
 Nbl=[6,6,1]
 print('System size = ',Nbl)

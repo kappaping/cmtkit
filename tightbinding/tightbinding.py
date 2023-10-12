@@ -101,6 +101,13 @@ def paulimat(n):
         return np.array([[1.,0.],[0.,-1.]])
 
 
+def spinorbitmat(nor,nsp):
+    '''
+    Matrices for the spin-orbit coupling: (nor,nsp) determines the representation tau^nor sigma^nsp
+    '''
+    return np.kron(paulimat(nor),paulimat(nsp))
+
+
 def pairmat(M,rid0,rid1,Nfl):
     '''
     Generate the Nfl x Nfl matrix of a pair of lattice sites with indices rid0 and rid1.
