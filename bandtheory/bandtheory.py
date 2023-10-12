@@ -3,7 +3,7 @@
 '''Band theory module: Setup of Hamiltonian in band theory'''
 
 from math import *
-import cmath as cmt
+import cmath
 import numpy as np
 import sympy
 import joblib
@@ -117,17 +117,23 @@ def berrycurv(k,H,dks):
     Compute the Berry curvatures at the momentum k.
     '''
     # List the corners of the small grid around k.
-    kcts=[k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]
+    # Rectangular Brillouin zone: Cut a rectangular grid.
+    if(len(dks)==2):kcts=[k+dks[0],k+dks[1],k-dks[0],k-dks[1]]
+    # Hexagonal Brillouin zone: Cut a hexagonal grid.
+    elif(len(dks)==3):kcts=[k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]
+    # Compute the volume of the small grid.
+    dka=len(dks)*np.linalg.norm(np.cross(dks[0],dks[1]))
     Nkcts=len(kcts)
     # Obtain the eigenstates at the corner momenta.
     Hkcts=[H(kct) for kct in kcts]
-    us=[np.linalg.eigh(Hkct)[1].transpose() for Hkct in Hkcts]
-    # Take the inner products between adjacent corners.
-    dus=[[np.vdot(us[(nkct+1)%Nkcts][nub],us[nkct][nub]) for nub in range(us[nkct].shape[0])] for nkct in range(Nkcts)]
-    dups=[[dus[nkct][nub]/abs(dus[nkct][nub]) for nub in range(len(dus[nkct]))] for nkct in range(Nkcts)]
-    deBs=list(np.prod(np.array(dups),axis=0))
-    dBs=[cmath.phase(deBs[nub]) for nub in range(len(deBs))]
-    Bs=[dBs[nub]/(6.*(sqrt(3)/4.)*np.linalg.norm(dks[0])**2) for nub in range(len(dBs))]
+    Us=[np.linalg.eigh(Hkct)[1] for Hkct in Hkcts]
+    # Take the inner products between adjacent corners <u(k+dk)|u(k)>.
+    UTs=[U.conj().T for U in Us]
+    dus=np.array([np.diag(np.dot(UTs[(nkct+1)%Nkcts],Us[nkct])) for nkct in range(Nkcts)])
+    # Extract the Berry phase from the product around k.
+    deBs=list(np.prod(dus,axis=0))
+    dBs=[cmath.phase(deB) for deB in deBs]
+    Bs=[dB/dka for dB in dBs]
     return [dBs,Bs]
 
 

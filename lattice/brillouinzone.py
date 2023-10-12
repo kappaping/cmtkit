@@ -109,11 +109,8 @@ def listbz(ltype,prds,Nk,bzop=False):
             k=n0*kecs[0]+n1*kecs[1]
             if(np.array_equal(np.array([inbzwidth(k,((-1)**nsdp)*kecs[nsdp],dkb) for nsdp in range(Nsdp)]),np.array([1 for nsdp in range(Nsdp)]))):ks.append(k)
     # List of corners of momentum-space grids.
-    dks=[(1./(2.*Nk))*hsks[Nsdp+1+nsdp][1] for nsdp in range(Nsdp)]
+    dks=[(1./Nk)*hsks[Nsdp+1+nsdp][1] for nsdp in range(Nsdp)]
     return [ks,dks]
-
-
-
 
 
 

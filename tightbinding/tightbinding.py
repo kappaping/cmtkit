@@ -62,7 +62,7 @@ def sitedenimb(H,t0,Nrfl):
     '''
     Site-density imbalance
     '''
-    [setpair(H,[0.,0.,0.,t0],rid,rid,Nrfl[1]) for rid in range(Nrfl[0])]
+    [setpairpm(H,[0.,0.,0.,t0],rid,rid,Nrfl[1]) for rid in range(Nrfl[0])]
 
 
 def dendenint(us,NB,RD,Nfl,utype='hu',delta=0.2):
