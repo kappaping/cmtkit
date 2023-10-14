@@ -112,7 +112,7 @@ def fillingchempot(H,nf,ltype,prds,Nk):
     return mu
 
 
-def berrycurv(k,H,dks):
+def berrycurv(k,H,dks,nf=0.):
     '''
     Compute the Berry curvatures at the momentum k.
     '''
@@ -129,12 +129,25 @@ def berrycurv(k,H,dks):
     Us=[np.linalg.eigh(Hkct)[1] for Hkct in Hkcts]
     # Take the inner products between adjacent corners <u(k+dk)|u(k)>.
     UTs=[U.conj().T for U in Us]
+    # Extract the Berry phase of each single band.
     dus=np.array([np.diag(np.dot(UTs[(nkct+1)%Nkcts],Us[nkct])) for nkct in range(Nkcts)])
-    # Extract the Berry phase from the product around k.
     deBs=list(np.prod(dus,axis=0))
     dBs=[cmath.phase(deB) for deB in deBs]
     Bs=[dB/dka for dB in dBs]
     return [dBs,Bs]
+    '''
+    # Extract the Berry phase of the occupied bands.
+    Nbd=np.shape(Us[0])[0]
+    Noc=round(Nbd*nf)
+    D=np.diag(np.array(Noc*[1.]+(Nbd-Noc)*[0.]))
+    dUocs=[np.linalg.multi_dot([UTs[(nkct+1)%Nkcts],D,Us[nkct]]) for nkct in range(Nkcts)]
+#    ddUocs=np.array([np.linalg.det(dUoc) for dUoc in dUocs])
+#    dBoc=cmath.phase(np.prod(ddUocs))
+    dUocc=np.linalg.multi_dot(dUocs)
+    dBoc=cmath.phase(np.linalg.det(dUocc))
+    Boc=dBoc/dka
+    return [dBs,Bs,dBoc,Boc]
+    '''
 
 
 

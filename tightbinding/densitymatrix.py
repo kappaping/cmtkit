@@ -20,7 +20,7 @@ def projdenmat(U,n0,n1,Nst):
     UT=U.conj().T
     # Project to only the Noc occupied states
     D=np.diag(np.array(n0*[0.]+(n1-n0)*[1.]+(Nst-n1)*[0.]))
-    return np.round(np.linalg.multi_dot([U,D,UT]),18)
+    return np.round(np.linalg.multi_dot([U,D,UT]),25)
 
 
 def paircharge(P,rid0,rid1,Nfl):

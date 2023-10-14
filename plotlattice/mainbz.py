@@ -13,12 +13,12 @@ import bandtheory as bdth
 import plotband as plbd
 
 
-ltype='sq'
+ltype='tr'
 print(ltc.ltcname(ltype))
 
 prds=[1,1,1]
 
-Nk=6
+Nk=30
 
 bzop=True
 ks,dks=bz.listbz(ltype,prds,Nk,bzop)
