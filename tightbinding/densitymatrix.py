@@ -34,7 +34,10 @@ def pairspin(P,rid0,rid1,Nfl):
     '''
     Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
     '''
-    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*tb.paulimat(n))) for n in [1,2,3]])
+    if(Nfl==2):smats=[tb.paulimat(n+1) for n in range(3)]
+    elif(Nfl==4):smats=[tb.somat(0,n+1) for n in range(3)]
+#    elif(Nfl==4):smats=[tb.somat(n+1,0) for n in range(3)]
+    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*smats[n])) for n in range(3)])
 
 
 def chargeorder(P,nb1ids,Nrfl):

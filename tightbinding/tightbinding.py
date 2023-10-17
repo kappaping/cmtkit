@@ -101,7 +101,7 @@ def paulimat(n):
         return np.array([[1.,0.],[0.,-1.]])
 
 
-def spinorbitmat(nor,nsp):
+def somat(nor,nsp):
     '''
     Matrices for the spin-orbit coupling: (nor,nsp) determines the representation tau^nor sigma^nsp
     '''
