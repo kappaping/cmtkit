@@ -77,7 +77,7 @@ def bonds(rs,nb1ids,Nbl,ltype,bc,otype,os,res):
     elif(otype=='s'):os=[np.array([(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0]]),np.array([(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1]])]
     # Imaginary
     bmp=[(b[0]+b[1])/2. for b in bs]    # Middle points of bonds
-    bv=[b[1]-b[0] for b in bs]  # Bond vectors
+    bv=[b[0]-b[1] for b in bs]  # Bond vectors
     bii=np.array([bmp[nb]-(os[1][nb]/2.)*bv[nb] for nb in range(len(bs))]).transpose()  # Initial point of current cone
     biv=np.array([os[1][nb]*bv[nb] for nb in range(len(bs))]).transpose()   # Length of current cone
     bspli=mlab.quiver3d(bii[0],bii[1],bii[2],biv[0],biv[1],biv[2],color=(0.4660,0.6740,0.1880),mode='cone',scale_factor=1.,resolution=res)
