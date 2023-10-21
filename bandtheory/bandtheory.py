@@ -66,7 +66,7 @@ def ucsiteid(r,prds,Nuc,rucs):
     # sqrt3 x sqrt3
     elif(max(prds)==23):return ltc.siteid([np.array([(r[0][0]-r[0][1]%3)%3,0,0]),r[1]],rucs)
     # 2sqrt3 x 2sqrt3
-    elif(max(prds)==223):return ltc.siteid([np.array([(r[0][0]-2*((r[0][1]//2)%3))%6,r[1]%2,0]),r[1]],rucs)
+    elif(max(prds)==223):return ltc.siteid([np.array([(r[0][0]-2*((r[0][1]//2)%3))%6,r[0][1]%2,0]),r[1]],rucs)
 
 
 def ftsites(rs,Nr,prds,Nuc,rucs):
@@ -79,7 +79,7 @@ def ftsites(rs,Nr,prds,Nuc,rucs):
     rucids=np.array([ucsiteid(rs[rid],prds,Nuc,rucs) for rid in range(Nr)])
     # List the lattice-site ids for all ruc in rucs
     rucrids=[ltc.siteid(rucs[rucid],rs) for rucid in range(Nruc)]
-    # Determine the Nruc x Nruc list
+    # Determine the list [rid0,rid1] for each site rucid0 in the unit cell 
     RUCRP=[[[[rucrids[rucid0],rid1[0]] for rid1 in np.argwhere(rucids==rucid1)] for rucid1 in range(Nruc)] for rucid0 in range(Nruc)]
     return RUCRP
 
@@ -129,25 +129,14 @@ def berrycurv(k,H,dks,nf=0.):
     Us=[np.linalg.eigh(Hkct)[1] for Hkct in Hkcts]
     # Take the inner products between adjacent corners <u(k+dk)|u(k)>.
     UTs=[U.conj().T for U in Us]
-    # Extract the Berry phase of each single band.
-    dus=np.array([np.diag(np.dot(UTs[(nkct+1)%Nkcts],Us[nkct])) for nkct in range(Nkcts)])
-    deBs=list(np.prod(dus,axis=0))
-    dBs=[cmath.phase(deB) for deB in deBs]
-    Bs=[dB/dka for dB in dBs]
-    return [dBs,Bs]
-    '''
     # Extract the Berry phase of the occupied bands.
     Nbd=np.shape(Us[0])[0]
     Noc=round(Nbd*nf)
-    D=np.diag(np.array(Noc*[1.]+(Nbd-Noc)*[0.]))
-    dUocs=[np.linalg.multi_dot([UTs[(nkct+1)%Nkcts],D,Us[nkct]]) for nkct in range(Nkcts)]
-#    ddUocs=np.array([np.linalg.det(dUoc) for dUoc in dUocs])
-#    dBoc=cmath.phase(np.prod(ddUocs))
-    dUocc=np.linalg.multi_dot(dUocs)
-    dBoc=cmath.phase(np.linalg.det(dUocc))
-    Boc=dBoc/dka
-    return [dBs,Bs,dBoc,Boc]
-    '''
+    dUs=[np.dot(UTs[(nkct+1)%Nkcts][:Noc,:],Us[nkct][:,:Noc]) for nkct in range(Nkcts)]
+    dUcyc=np.linalg.multi_dot(dUs)
+    dBf=cmath.phase(np.linalg.det(dUcyc))
+    Bf=dBf/dka
+    return [dBf,Bf,dka]
 
 
 

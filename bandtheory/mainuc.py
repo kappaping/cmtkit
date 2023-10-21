@@ -48,6 +48,7 @@ chos=dm.chargeorder(P,nb1ids,Nrfl)[0]
 prds=[223,223,1]
 Nuc,rucs=bdth.ucsites(ltype,prds)
 chos[0]=[bdth.ucsiteid(r,prds,Nuc,rucs) for r in rs]
+print(chos[0])
 cavg=sum(chos[0])/len(chos[0])
 chos[0]=[cho-cavg for cho in chos[0]]
 cmax=max(chos[0])

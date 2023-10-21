@@ -119,7 +119,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
     plt.show()
 
 
-def plotbz(ltype,prds,todata=False,dataks=[],tolabel=False,tosave=False,filetfig=''):
+def plotbz(ltype,prds,todata=False,dataks=[],bzvol=1.,tolabel=False,tosave=False,filetfig=''):
     '''
     Draw the Brillouin zone.
     '''
@@ -155,7 +155,8 @@ def plotbz(ltype,prds,todata=False,dataks=[],tolabel=False,tosave=False,filetfig
     # If there is data to present, map it out.
     if(todata):
         [k0s,k1s,data]=np.array(dataks).transpose()
-        plt.scatter(k0s,k1s,s=40.,c=data,cmap='coolwarm')
+        camax=max(max(abs(data)),1./bzvol)
+        plt.scatter(k0s,k1s,s=40.,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
     ax=plt.gca()
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
