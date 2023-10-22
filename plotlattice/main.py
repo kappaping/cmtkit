@@ -15,17 +15,17 @@ import densitymatrix as dm
 
 
 # Lattice structure
-ltype='py'
+ltype='sq'
 print(ltc.ltcname(ltype))
-Nbl=[3,3,3]
+Nbl=[4,4,1]
 print('System size = ',Nbl)
 Nsl=ltc.slnum(ltype)
 rs=ltc.ltcsites(Nbl,Nsl)
 Nr=len(rs)
 print('Site number = ',Nr)
-bc=1
+bc=0
 
-filet='../../data/lattice/pyrochlore/888_bc_1'
+#filet='../../data/lattice/pyrochlore/888_bc_1'
 filetfig='/home/kappaping/research/figs/testfig.pdf'
 
 NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]

@@ -63,7 +63,6 @@ def bonds(rs,nb1ids,Nbl,ltype,bc,otype,os,res):
     Lattice bond positions.
     '''
     # Set the non-periodic bond positions for the plotting
-    rd1=min([np.linalg.norm(ltc.pos(rs[pair[0]],ltype)-ltc.pos(rs[pair[1]],ltype)) for pair in nb1ids])
     bs=[]
     nptrs=ltc.periodictrsl(Nbl,bc)
     for pair in nb1ids:
@@ -85,7 +84,7 @@ def bonds(rs,nb1ids,Nbl,ltype,bc,otype,os,res):
     bspli.glyph.glyph_source.glyph_source.height=0.6
     # Real
     [bv0,bv1,bv2]=np.array(bv).transpose()
-    [bi0,bi1,bi2]=np.array([b[0] for b in bs]).transpose()
+    [bi0,bi1,bi2]=np.array([b[1] for b in bs]).transpose()
     bsplr=mlab.quiver3d(bi0,bi1,bi2,bv0,bv1,bv2,colormap='coolwarm',mode='cylinder',scale_factor=1.,resolution=res)
     bsplr.glyph.color_mode='color_by_scalar'
     bsplr.module_manager.scalar_lut_manager.use_default_range=False
