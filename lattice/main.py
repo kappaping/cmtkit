@@ -8,14 +8,14 @@ import joblib
 import lattice as ltc
 
 
-ltype='py'
+ltype='tr'
 print(ltc.ltcname(ltype))
-Nbl=[4,4,4]
+Nbl=[24,24,1]
 Nsl=ltc.slnum(ltype)
 bc=1
 rs=ltc.ltcsites(Nbl,Nsl)
 
-filet='../../data/lattice/pyrochlore/444_bc_1'
+filet='../../data/lattice/triangular/24241_bc_1'
 
 NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,tordv=True)
 print(NB)
