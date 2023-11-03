@@ -29,20 +29,40 @@ import bandtheory as bdth
 '''Plotting the bands'''
 
 
-def mapfs(H,nf,ltype,prds,Nk,tosetde=False,de=0.):
+def mapfs(H,nf,ltype,prds,Nk,datatype='e',tosetde=False,de=0.):
     '''
     Obtain the Fermi surface for a given filling
     '''
     dataks=[]
     ks=bz.listbz(ltype,prds,Nk)[0]
     Hks=np.array([H(k) for k in ks])
-    ees=np.linalg.eigvalsh(Hks)
+    ees,us=np.linalg.eigh(Hks)
+    us=[u.conj().T for u in us]
     mu=bdth.fillingchempot(H,nf,ltype,prds,Nk)
-    Nbd=np.shape(ees[0])[1]
-    if(tosetde==False):de=1/Nk**2
+    Nbd=np.shape(ees)[1]
+    if(tosetde==False):de=100/Nk**2
     for n in range(Nbd):
         for nk in range(len(ks)):
-            if(abs(ees[nk][n]-mu))<de:dataks.append([ks[nk][0],ks[nk][1],0.5])
+            if(abs(ees[nk][n]-mu)<de):
+                if(datatype=='f'):datak=0.5
+                elif(datatype=='s'):
+                    sz=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),tb.paulimat(3))
+                    u=us[nk][n]
+                    datak=np.linalg.multi_dot([u,sz,u.conj().T]).real
+                dataks.append([ks[nk][0],ks[nk][1],datak])
+    return dataks
+
+
+def mapband(H,nbd,ltype,prds,Nk,tosetde=False,de=0.):
+    '''
+    Obtain the Fermi surface for a given filling
+    '''
+    ks=bz.listbz(ltype,prds,Nk)[0]
+    Hks=np.array([H(k) for k in ks])
+    ees=list(np.linalg.eigvalsh(Hks).T[nbd])
+    eeavg=sum(ees)/len(ees)
+    ees=[10*(ee-eeavg) for ee in ees]
+    dataks=[[ks[nk][0],ks[nk][1],ees[nk]] for nk in range(len(ks))]
     return dataks
 
 
