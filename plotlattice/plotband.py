@@ -6,6 +6,8 @@ from math import *
 import cmath as cmt
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm
+import matplotlib.colors
 plt.rcParams['font.size']=18
 plt.rcParams.update({'figure.autolayout': True})
 from matplotlib.collections import LineCollection
@@ -67,6 +69,17 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',toend=True):
         if(datatype=='s'):
             sz=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),tb.paulimat(3))
             datascs=np.array([[np.linalg.multi_dot([u,sz,u.conj().T]).real for u in usc] for usc in uscs]).T
+            for nk in range(len(kscs)):
+                nb=0
+                ndg=1
+                while nb<len(eescs):
+                    if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-14):
+                        dataavg=sum([datascs[nb-n,nk] for n in range(ndg)])/ndg
+                        for n in range(ndg):
+                            datascs[nb-n,nk]=dataavg
+                        ndg=1
+                    else:ndg+=1
+                    nb+=1
     return kscs,eescs,datascs
 
 
@@ -105,6 +118,9 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
         kts+=[k0]
         ktlbs+=[hsks[nsc+1][0]]
     # Determine the colors of the data.
+    damax=max(0.001,np.max(abs(datas)))
+    cmap=matplotlib.cm.get_cmap('coolwarm')
+    norm=matplotlib.colors.Normalize(vmin=-damax,vmax=damax)
     def bandsegmentcolor(data0,data1,mu,datatype):
         # Determine the colors of a band segment [ee0,ee1].
         # Return green and blue below and above the chemical potential, respectively.
@@ -112,9 +128,9 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
             if(data0<mu+1e-14 and data1<mu+1e-14):return 'g'
             else:return 'b'
         elif(datatype!='e'):
-            if(abs(data0)<1e-14):return 'gray'
-            elif(data0>0.):return 'r'
-            elif(data0<0.):return 'b'
+            if(abs(data0)>abs(data1)):datat=data0
+            else:datat=data1
+            return cmap(norm(datat))
     cs=[[bandsegmentcolor(datas[n,nk],datas[n,nk+1],mu,datatype) for nk in range(np.shape(bands)[1]-1)] for n in range(Nbd)]
     plt.rcParams.update({'font.size':30})
     for n in range(Nbd):
