@@ -44,7 +44,7 @@ def mapfs(H,nf,ltype,prds,Nk,tosetde=False,de=0.):
     return dataks
 
 
-def sectionband(H,mu,k1,k2,k0,Nk,toend=True):
+def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',toend=True):
     '''
     Compute the band energies from the Hamiltonian H along a momentum-space line section k1-k2.
     '''
@@ -56,16 +56,26 @@ def sectionband(H,mu,k1,k2,k0,Nk,toend=True):
     kscs=np.array([k0+nk*dk for nk in range(len(k12s))])
     # Obtain the band energies at all momenta in the [k1,k2] section.
     Hks=np.array([H(k) for k in k12s])
-    eescs=np.linalg.eigvalsh(Hks).T
-    return kscs,eescs
+    datascs=[]
+    if(datatype=='e'):
+        eescs=np.linalg.eigvalsh(Hks).T
+        datascs=eescs
+    else:
+        eescs,uscs=np.linalg.eigh(Hks)
+        eescs=eescs.T
+        uscs=[usc.conj().T for usc in uscs]
+        if(datatype=='s'):
+            sz=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),tb.paulimat(3))
+            datascs=np.array([[np.linalg.multi_dot([u,sz,u.conj().T]).real for u in usc] for usc in uscs]).T
+    return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=False,filetfig=''):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
     # Obtain the high-symmetry points.
-    hsks=bz.hskcontour(ltype,prds)
+    hsks=bz.hskcontour(ltype,prds,cttype)
     # Obtain the number of bands.
     Nbd=np.shape(H(hsks[0][1]))[0]
     # Determine the chemical potential mu that shows the filling. If no showing the filling, let nf=0 to plot all bands in blue.
@@ -74,6 +84,8 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
     ks=np.array([])
     # Initial list of all plotted bands.
     bands=np.array([[] for n in range(Nbd)])
+    # Initial list of all plotted band data.
+    datas=np.array([[] for n in range(Nbd)])
     # Initial point of plotted momentum.
     k0=0.
     # Initial list of high-symmetry points kts and their labels ktlbs along the plotted contour. These are the ticks of the x axis.
@@ -82,22 +94,28 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosave=False,filetfig=''):
         # Exclude the end point except in the last segment.
         toend=(nsc==len(hsks)-2)
         # Obtain the momenta and band energies in the section.
-        kscs,eescs=sectionband(H,mu,hsks[nsc][1],hsks[nsc+1][1],k0,Nk,toend)
+        kscs,eescs,datascs=sectionband(H,mu,hsks[nsc][1],hsks[nsc+1][1],k0,Nk,datatype,toend)
         # Add the momenta and band energies in the section to the overall lists.
         ks=np.concatenate((ks,kscs),axis=0)
         bands=np.concatenate((bands,eescs),axis=1)
+        datas=np.concatenate((datas,datascs),axis=1)
         # Shift k0 to by the length of the [k1,k2] section.
         k0+=np.linalg.norm(hsks[nsc+1][1]-hsks[nsc][1])
         # Append the end momentum and its label to the list.
         kts+=[k0]
         ktlbs+=[hsks[nsc+1][0]]
     # Determine the colors of the data.
-    def bandsegmentcolor(ee0,ee1,mu):
+    def bandsegmentcolor(data0,data1,mu,datatype):
         # Determine the colors of a band segment [ee0,ee1].
         # Return green and blue below and above the chemical potential, respectively.
-        if(ee0<mu+1e-14 and ee1<mu+1e-14):return 'g'
-        else:return 'b'
-    cs=[[bandsegmentcolor(bands[n,nk],bands[n,nk+1],mu) for nk in range(np.shape(bands)[1]-1)] for n in range(Nbd)]
+        if(datatype=='e'):
+            if(data0<mu+1e-14 and data1<mu+1e-14):return 'g'
+            else:return 'b'
+        elif(datatype!='e'):
+            if(abs(data0)<1e-14):return 'gray'
+            elif(data0>0.):return 'r'
+            elif(data0<0.):return 'b'
+    cs=[[bandsegmentcolor(datas[n,nk],datas[n,nk+1],mu,datatype) for nk in range(np.shape(bands)[1]-1)] for n in range(Nbd)]
     plt.rcParams.update({'font.size':30})
     for n in range(Nbd):
 #        plt.scatter(ks,bands[n],s=2.,c=cs[n])

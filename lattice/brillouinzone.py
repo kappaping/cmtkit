@@ -58,7 +58,7 @@ def hskpoints(ltype,prds):
     # Rectangular Brillouin zone.
     if(bztype=='rc'):
         [x,y]=[pi*np.cross(ucblvs[(n+1)%3],ucblvs[(n+2)%3])/np.dot(ucblvs[0],np.cross(ucblvs[1],ucblvs[2])) for n in range(2)]
-        return [['\u0393',pi*np.array([0.,0.,0.])],['X',x],['Y',y],['M',x+y],['M',x-y]]
+        return [['\u0393',pi*np.array([0.,0.,0.])],['X',x],['Y',y],['M',x+y],['M',-x+y]]
     # Hexagonal Brillouin zone.
     elif(bztype=='hx'):
         [m1,m2]=[pi*((-1)**(n+1))*np.cross(ucblvs[n],ucblvs[2])/np.dot(ucblvs[0],np.cross(ucblvs[1],ucblvs[2])) for n in range(2)]
@@ -67,7 +67,7 @@ def hskpoints(ltype,prds):
                 ['K',(2./3.)*(m2-m3)],['K',(2./3.)*(m3-m1)],['K',(2./3.)*(m1-m2)]]
 
 
-def hskcontour(ltype,prds):
+def hskcontour(ltype,prds,cttype='s'):
     '''
     Set the high-symmetry points in the Brillouin zone forming the contour for the band structure.
     '''
@@ -77,8 +77,8 @@ def hskcontour(ltype,prds):
     hsks=hskpoints(ltype,prds)
     # Contour of rectangular Brillouin zone.
     if(bztype=='rc'):
-        if(abs(np.linalg.norm(hsks[1][1])-np.linalg.norm(hsks[2][1]))<1e-14):return [hsks[0],hsks[1],hsks[3],hsks[0]]
-        else:return [hsks[0],hsks[1],hsks[3],hsks[0],hsks[2],hsks[3],hsks[0]]
+        if(abs(np.linalg.norm(hsks[1][1])-np.linalg.norm(hsks[2][1]))<1e-14 and cttype=='s'):return [hsks[0],hsks[1],hsks[3],hsks[0]]
+        else:return [hsks[0],hsks[1],hsks[3],hsks[0],hsks[2],hsks[4],hsks[0]]
     # Contour of hexagonal Brillouin zone.
     elif(bztype=='hx'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0]]
 

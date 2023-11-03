@@ -40,6 +40,14 @@ def pairspin(P,rid0,rid1,Nfl):
     return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*smats[n])) for n in range(3)])
 
 
+def pairorbital(P,rid0,rid1,Nfl):
+    '''
+    Compute the orbital of a pair of lattice sites. The onsite orbital is real, while the offsite orbital can be complex.
+    '''
+    if(Nfl==4):omats=[tb.somat(n+1,0) for n in range(3)]
+    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*omats[n])) for n in range(3)])
+
+
 def chargeorder(P,nb1ids,Nrfl):
     '''
     Compute the charge order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
@@ -84,6 +92,26 @@ def spinorder(P,nb1ids,Nrfl):
     bspsrmax,bspsimax=max(bspsrn),max(bspsin)
 
     return [[ssps,bspsr,bspsi],[sspsmax,bspsrmax,bspsimax]]
+
+
+def orbitalorder(P,nb1ids,Nrfl):
+    '''
+    Compute the orbital order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
+    '''
+    # Site order
+    sobs=[pairorbital(P,rid,rid,Nrfl[1]).real for rid in range(Nrfl[0])]
+    sobsn=[np.linalg.norm(sobs[nr]) for nr in range(len(sobs))]
+    sobsmax=max(sobsn)
+    # Bond order
+    bobs=[pairorbital(P,pair[0],pair[1],Nrfl[1]) for pair in nb1ids]
+    # Distinguish the real and imaginary bonds
+    bobsr=[bobs[nb].real for nb in range(len(bobs))]
+    bobsi=[bobs[nb].imag for nb in range(len(bobs))]
+    bobsrn=[np.linalg.norm(bobsr[nb]) for nb in range(len(bobsr))]
+    bobsin=[np.linalg.norm(bobsi[nb]) for nb in range(len(bobsi))]
+    bobsrmax,bobsimax=max(bobsrn),max(bobsin)
+
+    return [[sobs,bobsr,bobsi],[sobsmax,bobsrmax,bobsimax]]
 
 
 

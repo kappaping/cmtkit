@@ -142,12 +142,12 @@ def plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,s
 
 
 
-def rescaledorder(chs,sps):
+def rescaledorder(oss):
     '''
-    Rescale the charge and spin orders for the plotting.
+    Rescale the orders for the plotting.
     '''
-    omax=np.amax(np.array([chs[1],sps[1]]))
-    return [np.array(chs[0][n])/omax for n in range(3)],[np.array(sps[0][n])/omax for n in range(3)]
+    omax=np.amax(np.array([os[1] for os in oss]))
+    return [[np.array(os[0][n])/omax for n in range(3)] for os in oss]
 
 
 
