@@ -48,8 +48,9 @@ def termmat(Mt,mt,rid0,fl0,rid1,fl1,Nfl):
 
 def tbham(ts,NB,Nfl):
     '''
-    Tight-binding Hamiltonian: Assign the hoppings ts=[t0,t1,t2,....] to the Hamiltonian H.
+    Tight-binding Hamiltonian: Assign the hoppings ts=[-t0,-t1,-t2,....] to the Hamiltonian H.
     '''
+    print('[-t0,-t1,-t2] = ',ts)
     # Construct a list of hoppings tnbs=[ts,0,0,....] with the length matching the number of all neighboring distances.
     maxnb=np.max(NB)
     tnbs=ts+[0. for n in range(maxnb-(len(ts)-1))]
@@ -63,28 +64,6 @@ def sitedenimb(H,t0,Nrfl):
     Site-density imbalance
     '''
     [setpairpm(H,[0.,0.,0.,t0],rid,rid,Nrfl[1]) for rid in range(Nrfl[0])]
-
-
-def dendenint(us,NB,RD,Nfl,utype='hu',delta=0.2):
-    '''
-    Density-density interaction: Define the density-density interactions.
-    Return a matrix with the same indices as the tight-binding Hamiltonian.
-    The matrix element at [(r0,fl0),(r1,fl1)] corresponds to the interaction u between the densities n(r0,fl0,) and n(r1,fl1).
-    If utype=='hu': Assign the Hubbard interactions from the input us=[u0,u1,u2,....]
-    Elif utype=='co': Assign the screened Coulomb interaction u(r)=(u0/sqrt((r/delta)**2+1))*exp(-r/delta) with screening length scale delta.
-    '''
-    if(utype=='hu'):
-        # Construct a list of interactions unbs=[us,0,0,....] with the length matching the number of all neighboring distances.
-        maxnb=np.max(NB)
-        unbs=us+[0. for n in range(maxnb-(len(us)-1))]
-        # Construct the interaction matrix with the elements assigned by the neighboring distances.
-        UINT=np.array([[unbs[nb] for nb in row for fl1 in range(Nfl)] for row in NB for fl0 in range(Nfl)])
-    elif(utype=='co'):
-        # Construct the interaction matrix with the elements assigned by the Coulomb repulsion at the neighboring distances.
-        UINT=np.array([[(us[0]/sqrt((rd/delta)**2+1))*exp(-rd/delta) for rd in row for fl1 in range(Nfl)] for row in RD for fl0 in range(Nfl)])
-    for n in range(UINT.shape[0]):
-        UINT[n,n]=0.
-    return UINT
 
 
 def paulimat(n):
