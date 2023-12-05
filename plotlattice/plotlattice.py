@@ -20,15 +20,15 @@ import densitymatrix as dm
 '''Plotting the lattice'''
 
 
-def sites(rs,ltype,otype,os,res,to3d):
+def sites(rs,rplids,ltype,otype,os,res,to3d):
     '''
     Lattice site positions.
     '''
     # Compute the positions of all lattice sites.
-    ss=np.array([ltc.pos(r,ltype) for r in rs])
+    ss=np.array([ltc.pos(rs[rplid],ltype) for rplid in rplids])
     [r0s,r1s,r2s]=ss.transpose()
     # For lattice plot: Set all of the order values = 0.
-    if(otype=='l'):os=np.array([0. for nr in range(len(rs))])
+    if(otype=='l'):os=np.array([0. for rplid in rplids])
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(otype=='c'):os=np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os])
     # Plot
@@ -58,14 +58,14 @@ def sites(rs,ltype,otype,os,res,to3d):
             plt.clim(-1.,1.)
 
 
-def bonds(rs,nb1ids,Nbl,ltype,bc,otype,os,res):
+def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
     '''
     Lattice bond positions.
     '''
     # Set the non-periodic bond positions for the plotting
     bs=[]
     nptrs=ltc.periodictrsl(Nbl,bc)
-    for pair in nb1ids:
+    for pair in nbplids:
         r0,r1=rs[pair[0]],rs[pair[1]]
         r1dms=ltc.pairdist(ltype,r0,r1,True,nptrs)[1]
         bs+=[[ltc.pos(r0,ltype),ltc.pos(r1dm,ltype)] for r1dm in r1dms]
@@ -98,15 +98,15 @@ def bonds(rs,nb1ids,Nbl,ltype,bc,otype,os,res):
 #        bsplr[n].mlab_source.dataset.point_data.scalars=[os[0][n],os[0][n]]
 
 
-def plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),setdpi=2000,to3d=True,show3d=False,plaz=0.,plel=0.):
+def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),dpi=300,to3d=True,show3d=False,plaz=0.,plel=0.):
     '''
     Plot the lattice
     '''
     sos=os[0]
     bos=[os[1],os[2]]
     if(to3d):mlab.figure(bgcolor=None,size=(2000,2000))
-    sites(rs,ltype,otype,sos,res,to3d)
-    if(to3d):bonds(rs,nb1ids,Nbl,ltype,bc,otype,bos,res)
+    sites(rs,rplids,ltype,otype,sos,res,to3d)
+    if(to3d):bonds(rs,nbplids,Nbl,ltype,bc,otype,bos,res)
     if(to3d):
         mlab.view(azimuth=plaz,elevation=plel)
         f=mlab.gcf()
@@ -135,11 +135,65 @@ def plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,s
         plt.axis('off')
         ax=plt.gca()
         ax.set_aspect('equal', adjustable='box')
-    plt.savefig(filetfig,dpi=setdpi,bbox_inches='tight',pad_inches=0,transparent=True)
+    plt.savefig(filetfig,dpi=dpi,bbox_inches='tight',pad_inches=0,transparent=True)
     plt.clf()
 
 
 
+
+'''Plot the orders'''
+
+
+def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,filetfig=[]):
+    '''
+    Plot the orders.
+    '''
+    # Find out the first-neighbor pairs.
+    nb1ids=ltc.nthneighbors(1,NB)
+    # Compute the charge orders.
+    chs=dm.chargeorder(P,nb1ids,Nrfl)
+    print('charge order')
+    print('site order max = ',chs[1][0],', site order average = ',sum(chs[0][0])/len(chs[0][0]))
+    print('real bond order max = ',chs[1][1],', real bond order average = ',sum(chs[0][1])/len(chs[0][1]))
+    print('imaginary bond order max = ',chs[1][2],', imaginary bond order average = ',sum(chs[0][2])/len(chs[0][2]))
+    odss=[chs]
+    # If the flavor number > 1: Compute the spin orders.
+    if(Nrfl[1]>1):
+        sps=dm.spinorder(P,nb1ids,Nrfl)
+        print('spin order')
+        print('site order max = ',sps[1][0],', site order average = ',sum(sps[0][0])/len(sps[0][0]))
+        print('real bond order max = ',sps[1][1],', real bond order average = ',sum(sps[0][1])/len(sps[0][1]))
+        print('imaginary bond order max = ',sps[1][2],', imaginary bond order average = ',sum(sps[0][2])/len(sps[0][2]))
+        odss+=[sps]
+    # If the flavor number > 2: Compute the orbital orders.
+    if(Nrfl[1]>2):
+        ors=dm.orbitalorder(P,nb1ids,Nrfl)
+        print('orbital order')
+        print('site order max = ',ors[1][0],', site order average = ',sum(ors[0][0])/len(ors[0][0]))
+        print('real bond order max = ',ors[1][1],', real bond order average = ',sum(ors[0][1])/len(ors[0][1]))
+        print('imaginary bond order max = ',ors[1][2],', imaginary bond order average = ',sum(ors[0][2])/len(ors[0][2]))
+        odss+=[ors]
+    # Rescale the orders.
+    odssr=rescaledorder(odss)
+    # Extract the orders to plot.
+    if(len(rpls)==0):rpls=rs
+    rplids=[ltc.siteid(rpl,rs) for rpl in rpls]
+    odsspl=[[[],[],[]] for n in range(len(odssr))]
+    for m in range(len(odsspl)):
+        odsspl[m][0]=[odssr[m][0][rplid] for rplid in rplids]
+    nbplids=[]
+    for nb in range(len(nb1ids)):
+        if(nb1ids[nb][0] in rplids):
+            nbplids+=[nb1ids[nb]]
+            for m in range(len(odsspl)):
+                odsspl[m][1]+=[odssr[m][1][nb]]
+                odsspl[m][2]+=[odssr[m][2][nb]]
+    # Plot the charge orders.
+    plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0],'c',odsspl[0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    # If the flavor number > 1: Plot the spin orders.
+    if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1],'s',odsspl[1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    # If the flavor number > 2: Plot the orbital orders.
+    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'s',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
 
 
 def rescaledorder(oss):

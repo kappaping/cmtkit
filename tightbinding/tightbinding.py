@@ -4,6 +4,9 @@
 
 from math import *
 import numpy as np
+import matplotlib.pyplot as plt
+plt.rcParams['font.size']=18
+plt.rcParams.update({'figure.autolayout': True})
 
 import sys
 sys.path.append('../lattice')
@@ -50,7 +53,7 @@ def tbham(ts,NB,Nfl):
     '''
     Tight-binding Hamiltonian: Assign the hoppings ts=[-t0,-t1,-t2,....] to the Hamiltonian H.
     '''
-    print('[-t0,-t1,-t2] = ',ts)
+    print('Tight-binding model: [-t0,-t1,-t2,....] =',ts)
     # Construct a list of hoppings tnbs=[ts,0,0,....] with the length matching the number of all neighboring distances.
     maxnb=np.max(NB)
     tnbs=ts+[0. for n in range(maxnb-(len(ts)-1))]
@@ -105,7 +108,7 @@ def setpair(M,M01,rid0,rid1,Nfl):
 
 def setpairpm(M,v,rid0,rid1,Nfl):
     '''
-    Set the matrix for a pair of lattice sites.
+    Set the matrix for a pair of lattice sites with Pauli matrices.
     v=[v0,v1,v2,v3]: Set the matrix v0*sigma_0+v1*sigma_1+v2*sigma_2+v3*sigma_3 to the pairs rid0 and rid1.
     1/2 factors: Compensate with the Hermitian assignment in termmat.
     '''
@@ -115,6 +118,22 @@ def setpairpm(M,v,rid0,rid1,Nfl):
 
 
 
+'''Plot the energy spectrum'''
 
+def plotenergy(H,Nrfl,nf,toprint=False,filetfig=''):
+    '''
+    Plot the energy spectrum of the Hamiltonian H.
+    '''
+    es=np.linalg.eigvalsh(H)
+    Nst=statenum(Nrfl)
+    Noc=round(Nst*nf)
+    plt.rcParams.update({'font.size':30})
+    cs=Noc*['g']+(Nst-Noc)*['b']
+    plt.scatter(range(len(es)),es,c=cs)
+    plt.xlabel('n')
+    plt.ylabel('$e_n$')
+    plt.gcf()
+    if(toprint):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
+    plt.show()
 
 

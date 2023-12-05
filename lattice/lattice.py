@@ -5,6 +5,7 @@
 from math import *
 import numpy as np
 import time
+import joblib
 
 import square
 import triangular
@@ -40,13 +41,6 @@ def blvecs(ltype):
     elif(ltype=='py'):return pyrochlore.blvecs()
 
 
-def ltcsites(Nbl,Nsl):
-    '''
-    List all of the lattice sites
-    '''
-    return [[np.array([n0,n1,n2]),sl] for n0 in range(Nbl[0]) for n1 in range(Nbl[1]) for n2 in range(Nbl[2]) for sl in range(Nsl)]
-
-
 def slvecs(ltype):
     '''
     Sublattice vectors
@@ -63,6 +57,16 @@ def slnum(ltype):
     Sublattice number
     '''
     return np.shape(slvecs(ltype))[0]
+
+
+def ltcsites(ltype,Nbl,toprint=True):
+    '''
+    List all of the lattice sites
+    '''
+    rs=[[np.array([n0,n1,n2]),sl] for n0 in range(Nbl[0]) for n1 in range(Nbl[1]) for n2 in range(Nbl[2]) for sl in range(slnum(ltype))]
+    Nr=len(rs)
+    if(toprint):print(ltcname(ltype),'\nSystem size =',Nbl,', site number =',Nr)
+    return rs,Nr
 
 
 def siteid(r,rs):
@@ -148,31 +152,35 @@ def pairdist(ltype,r0,r1,totrsl=False,nptrs=[]):
         return [rdmin,r1dms,rdvdms]
 
 
-def ltcpairdist(ltype,rs,Nbl,bc,tordv=False):
+def ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=''):
     '''
     List all of the pair distances on the lattice.
-    Return: The matrices of neighbor indices NB and distances RD.
+    Return: The matrices of neighbor indices NB, distances RD and .
     '''
-    # Compute all of the pair distances on the lattice.
-    nptrs=periodictrsl(Nbl,bc)
-    RDS=[[pairdist(ltype,r0,r1,True,nptrs) for r1 in rs] for r0 in rs]
-    RD=[[RDS[rid0][rid1][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
-    RDV=[[RDS[rid0][rid1][2][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
-    # Determine the distances at the n-th neighbors.
-    rds=sorted(RD[0])
-    rnbs=[]
-    rdt=-1.
-    for rd in rds:
-        if(rd-rdt>1e-12):
-            rnbs+=[rd]
-            rdt=rd
-    rnbs=np.array(rnbs)
-    # Determine the neighbor index n for all of the pairs on the lattice.
-    NB=np.array([[abs(rnbs-rd).argmin() for rd in row] for row in RD])
-    RD=np.array(RD)
-    RDV=np.array(RDV)
-    if(tordv==False):return NB,RD
-    elif(tordv):return NB,RD,RDV
+    # Read from the file filet.
+    if(toread==True):
+        [bc,NB,RD,RDV]=joblib.load(filet)
+    else:
+        # Compute all of the pair distances on the lattice.
+        nptrs=periodictrsl(Nbl,bc)
+        RDS=[[pairdist(ltype,r0,r1,True,nptrs) for r1 in rs] for r0 in rs]
+        RD=[[RDS[rid0][rid1][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
+        RDV=[[RDS[rid0][rid1][2][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
+        # Determine the distances at the n-th neighbors.
+        rds=sorted(RD[0])
+        rnbs=[]
+        rdt=-1.
+        for rd in rds:
+            if(rd-rdt>1e-12):
+                rnbs+=[rd]
+                rdt=rd
+        rnbs=np.array(rnbs)
+        # Determine the neighbor index n for all of the pairs on the lattice.
+        NB=np.array([[abs(rnbs-rd).argmin() for rd in row] for row in RD])
+        RD=np.array(RD)
+        RDV=np.array(RDV)
+    print('Boundary condition =',bc)
+    return NB,RD,RDV
 
 
 def nthneighbors(nb,NB):
