@@ -13,6 +13,7 @@ import lattice as ltc
 sys.path.append('../tightbinding')
 import tightbinding as tb
 import densitymatrix as dm
+import bogoliubovdegennes as bdg
 
 
 
@@ -144,14 +145,14 @@ def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],
 '''Plot the orders'''
 
 
-def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,filetfig=[]):
+def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,filetfig=[],tobdg=False):
     '''
     Plot the orders.
     '''
     # Find out the first-neighbor pairs.
     nb1ids=ltc.nthneighbors(1,NB)
     # Compute the charge orders.
-    chs=dm.chargeorder(P,nb1ids,Nrfl)
+    chs=dm.chargeorder(P,nb1ids,Nrfl,tobdg)
     print('charge order')
     print('site order max = ',chs[1][0],', site order average = ',sum(chs[0][0])/len(chs[0][0]))
     print('real bond order max = ',chs[1][1],', real bond order average = ',sum(chs[0][1])/len(chs[0][1]))
@@ -159,7 +160,7 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=
     odss=[chs]
     # If the flavor number > 1: Compute the spin orders.
     if(Nrfl[1]>1):
-        sps=dm.spinorder(P,nb1ids,Nrfl)
+        sps=dm.spinorder(P,nb1ids,Nrfl,tobdg)
         print('spin order')
         print('site order max = ',sps[1][0],', site order average = ',sum(sps[0][0])/len(sps[0][0]))
         print('real bond order max = ',sps[1][1],', real bond order average = ',sum(sps[0][1])/len(sps[0][1]))
@@ -167,12 +168,29 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=
         odss+=[sps]
     # If the flavor number > 2: Compute the orbital orders.
     if(Nrfl[1]>2):
-        ors=dm.orbitalorder(P,nb1ids,Nrfl)
+        ors=dm.orbitalorder(P,nb1ids,Nrfl,tobdg)
         print('orbital order')
         print('site order max = ',ors[1][0],', site order average = ',sum(ors[0][0])/len(ors[0][0]))
         print('real bond order max = ',ors[1][1],', real bond order average = ',sum(ors[0][1])/len(ors[0][1]))
         print('imaginary bond order max = ',ors[1][2],', imaginary bond order average = ',sum(ors[0][2])/len(ors[0][2]))
-        odss+=[ors]
+#        odss[0]+=[ors]
+    # Compute the pairing orders.
+    if(tobdg):
+        # Compute the charge orders.
+        fos=bdg.flavoroddorder(P,nb1ids,Nrfl)
+        print('Flavor-odd pairing order')
+        print('site order max = ',fos[1][0],', site order average = ',sum(fos[0][0])/len(fos[0][0]))
+        print('real bond order max = ',fos[1][1],', real bond order average = ',sum(fos[0][1])/len(fos[0][1]))
+        print('imaginary bond order max = ',fos[1][2],', imaginary bond order average = ',sum(fos[0][2])/len(fos[0][2]))
+        odss+=[fos]
+        # If the flavor number > 1: Compute the spin orders.
+        if(Nrfl[1]>1):
+            fes=bdg.flavorevenorder(P,nb1ids,Nrfl)
+            print('Flavor-even pairing order')
+            print('site order max = ',fes[1][0],', site order average = ',sum(fes[0][0])/len(fes[0][0]))
+            print('real bond order max = ',fes[1][1],', real bond order average = ',sum(fes[0][1])/len(fes[0][1]))
+            print('imaginary bond order max = ',fes[1][2],', imaginary bond order average = ',sum(fes[0][2])/len(fes[0][2]))
+            odss+=[fes]
     # Rescale the orders.
     odssr=rescaledorder(odss)
     # Extract the orders to plot.
@@ -193,7 +211,13 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=
     # If the flavor number > 1: Plot the spin orders.
     if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1],'s',odsspl[1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
     # If the flavor number > 2: Plot the orbital orders.
-    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'s',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+#    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'s',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    # Plot the pairing orders.
+    if(tobdg):
+        # Plot the flavor-odd orders.
+        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'c',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        # If the flavor number > 2: Plot the spin orders.
+        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[3],'s',odsspl[3],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
 
 
 def rescaledorder(oss):

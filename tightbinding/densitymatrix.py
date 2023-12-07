@@ -28,7 +28,7 @@ def projdenmat(U,n0,n1,Nst):
     return np.round(np.linalg.multi_dot([U,D,UT]),25)
 
 
-def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]])):
+def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
     '''
     Set up a density matrix.
     Return: A density matrix.
@@ -47,6 +47,7 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli
     # Initialize the density matrix.
     Nst=tb.statenum(Nrfl)
     P=np.zeros((Nst,Nst),dtype=complex)
+    if(tobdg):P=np.block([[P,P],[P,P]])
     # Compute the occupation number.
     print('Filling =',nf)
     Noc=round(Nst*nf)
@@ -55,6 +56,13 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli
     if(Ptype=='rand'):
         print('Get a random density matrix')
         P=projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
+        if(tobdg):
+            PBs=[[P,P],[P,-P.T]]
+            P01=unitary_group.rvs(Nst)
+            P01=(P01-P01.T)/2.
+            PBs[0][1]=P01
+            PBs[1][0]=P01.conj().T
+            P=np.block(PBs)
     # Read the density matrix from the file fileti.
     elif(Ptype=='read'):
         print('Read the density matrix from:', fileti)
@@ -137,87 +145,87 @@ def flrot(P,Nrfl,Ufl):
 '''Computation of orders.'''
 
 
-def paircharge(P,rid0,rid1,Nfl):
+def paircharge(P,rid0,rid1,Nfl,tobdg=False):
     '''
     Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
     '''
-    return np.trace(tb.pairmat(P,rid0,rid1,Nfl))
+    return np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0))
 
 
-def pairspin(P,rid0,rid1,Nfl):
+def pairspin(P,rid0,rid1,Nfl,tobdg=False):
     '''
     Compute the spin of a pair of lattice sites. The onsite spin is real, while the offsite spin can be complex.
     '''
     if(Nfl==2):smats=[tb.paulimat(n+1) for n in range(3)]
     elif(Nfl==4):smats=[tb.somat(0,n+1) for n in range(3)]
 #    elif(Nfl==4):smats=[tb.somat(n+1,0) for n in range(3)]
-    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*smats[n])) for n in range(3)])
+    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0),(1./2.)*smats[n])) for n in range(3)])
 
 
-def pairorbital(P,rid0,rid1,Nfl):
+def pairorbital(P,rid0,rid1,Nfl,tobdg=False):
     '''
     Compute the orbital of a pair of lattice sites. The onsite orbital is real, while the offsite orbital can be complex.
     '''
     if(Nfl==4):omats=[tb.somat(n+1,0) for n in range(3)]
-    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl),(1./2.)*omats[n])) for n in range(3)])
+    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0),(1./2.)*omats[n])) for n in range(3)])
 
 
-def chargeorder(P,nb1ids,Nrfl):
+def chargeorder(P,nb1ids,Nrfl,tobdg=False):
     '''
     Compute the charge order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
     # Site order
-    schs=[paircharge(P,rid,rid,Nrfl[1]).real for rid in range(Nrfl[0])]
+    schs=[paircharge(P,rid,rid,Nrfl[1],tobdg).real for rid in range(Nrfl[0])]
     # Extract the order as the deviation from the average
     schsavg=sum(schs)/len(schs)
-    schs=[schs[nr]-schsavg for nr in range(len(schs))]
-    schsa=[abs(schs[nr]) for nr in range(len(schs))]
+    schs=[sch-schsavg for sch in schs]
+    schsa=[abs(sch) for sch in schs]
     schsmax=max(schsa)
     # Bond order
-    bchs=[paircharge(P,pair[0],pair[1],Nrfl[1]) for pair in nb1ids]
+    bchs=[paircharge(P,pair[0],pair[1],Nrfl[1],tobdg) for pair in nb1ids]
     # Extract the order as the deviation from the average
     bchsavg=sum(bchs)/len(bchs)
-    bchs=[bchs[nr]-bchsavg for nr in range(len(bchs))]
+    bchs=[bch-bchsavg for bch in bchs]
     # Distinguish the real and imaginary bonds
-    bchsr=[bchs[nb].real for nb in range(len(bchs))]
-    bchsra=[abs(bchsr[nb]) for nb in range(len(bchsr))]
-    bchsi=[bchs[nb].imag for nb in range(len(bchs))]
-    bchsia=[abs(bchsi[nb]) for nb in range(len(bchsi))]
+    bchsr=[bch.real for bch in bchs]
+    bchsra=[abs(bchr) for bchr in bchsr]
+    bchsi=[bch.imag for bch in bchs]
+    bchsia=[abs(bchi) for bchi in bchsi]
     bchsrmax,bchsimax=max(bchsra),max(bchsia)
 
     return [[schs,bchsr,bchsi],[schsmax,bchsrmax,bchsimax]]
 
 
-def spinorder(P,nb1ids,Nrfl):
+def spinorder(P,nb1ids,Nrfl,tobdg=False):
     '''
     Compute the spin order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
     # Site order
-    ssps=[pairspin(P,rid,rid,Nrfl[1]).real for rid in range(Nrfl[0])]
-    sspsn=[np.linalg.norm(ssps[nr]) for nr in range(len(ssps))]
+    ssps=[pairspin(P,rid,rid,Nrfl[1],tobdg).real for rid in range(Nrfl[0])]
+    sspsn=[np.linalg.norm(ssp) for ssp in ssps]
     sspsmax=max(sspsn)
     # Bond order
-    bsps=[pairspin(P,pair[0],pair[1],Nrfl[1]) for pair in nb1ids]
+    bsps=[pairspin(P,pair[0],pair[1],Nrfl[1],tobdg) for pair in nb1ids]
     # Distinguish the real and imaginary bonds
-    bspsr=[bsps[nb].real for nb in range(len(bsps))]
-    bspsi=[bsps[nb].imag for nb in range(len(bsps))]
-    bspsrn=[np.linalg.norm(bspsr[nb]) for nb in range(len(bspsr))]
-    bspsin=[np.linalg.norm(bspsi[nb]) for nb in range(len(bspsi))]
+    bspsr=[bsp.real for bsp in bsps]
+    bspsi=[bsp.imag for bsp in bsps]
+    bspsrn=[np.linalg.norm(bspr) for bspr in bspsr]
+    bspsin=[np.linalg.norm(bspi) for bspi in bspsi]
     bspsrmax,bspsimax=max(bspsrn),max(bspsin)
 
     return [[ssps,bspsr,bspsi],[sspsmax,bspsrmax,bspsimax]]
 
 
-def orbitalorder(P,nb1ids,Nrfl):
+def orbitalorder(P,nb1ids,Nrfl,tobdg=False):
     '''
     Compute the orbital order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
     # Site order
-    sobs=[pairorbital(P,rid,rid,Nrfl[1]).real for rid in range(Nrfl[0])]
+    sobs=[pairorbital(P,rid,rid,Nrfl[1],tobdg).real for rid in range(Nrfl[0])]
     sobsn=[np.linalg.norm(sobs[nr]) for nr in range(len(sobs))]
     sobsmax=max(sobsn)
     # Bond order
-    bobs=[pairorbital(P,pair[0],pair[1],Nrfl[1]) for pair in nb1ids]
+    bobs=[pairorbital(P,pair[0],pair[1],Nrfl[1],tobdg) for pair in nb1ids]
     # Distinguish the real and imaginary bonds
     bobsr=[bobs[nb].real for nb in range(len(bobs))]
     bobsi=[bobs[nb].imag for nb in range(len(bobs))]

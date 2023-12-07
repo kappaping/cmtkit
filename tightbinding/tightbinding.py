@@ -11,6 +11,7 @@ plt.rcParams.update({'figure.autolayout': True})
 import sys
 sys.path.append('../lattice')
 import lattice as ltc
+import bogoliubovdegennes as bdg
 
 
 
@@ -35,15 +36,22 @@ def statenum(Nrfl):
     return Nrfl[0]*Nrfl[1]
 
 
-def termmat(Mt,mt,rid0,fl0,rid1,fl1,Nfl):
+def termmat(M,m,rid0,fl0,rid1,fl1,Nfl,tobdg=False,phid0=0,phid1=0):
     '''
-    Assign matrix elements: Assign the coupling mt between states (r0,fl0) and (r1,fl1) to the matrix Mt under Hermitian condition
-    r=[nr,sl]: Lattice site at Bravais lattice site nr and sublattice sl
-    fl: Flavor index
-    Nall=[Nbl,Nsl,Nfl]: Bravais lattice dimension, sublattice number, flavor number
+    Assign matrix elements: Assign the coupling mt between states (rid0,fl0) and (rid1,fl1) to the matrix Mt under Hermitian condition.
+    M: Matrix to be modified.
+    m: Matrix element to be added.
+    rid0, rid1: Lattice site indices.
+    fl0, fl1: Flavor indices.
+    Nfl: Flavor number.
     '''
-    Mt[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)]+=mt
-    Mt[stateid(rid1,fl1,Nfl),stateid(rid0,fl0,Nfl)]+=np.conj(mt)
+    if(tobdg==False):
+        M[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)]+=m
+        M[stateid(rid1,fl1,Nfl),stateid(rid0,fl0,Nfl)]+=np.conj(m)
+    elif(tobdg):
+        Nst=round(M.shape[0]/2)
+        M[phid0*Nst+stateid(rid0,fl0,Nfl),phid1*Nst+stateid(rid1,fl1,Nfl)]+=m
+        M[phid1*Nst+stateid(rid1,fl1,Nfl),phid0*Nst+stateid(rid0,fl0,Nfl)]+=np.conj(m)
 
 
 '''Set Hamiltonian'''
@@ -90,11 +98,13 @@ def somat(nor,nsp):
     return np.kron(paulimat(nor),paulimat(nsp))
 
 
-def pairmat(M,rid0,rid1,Nfl):
+def pairmat(M,rid0,rid1,Nfl,tobdg=False,phid0=0,phid1=0):
     '''
-    Generate the Nfl x Nfl matrix of a pair of lattice sites with indices rid0 and rid1.
+    Get the Nfl x Nfl matrix of a pair of lattice sites with indices rid0 and rid1.
     '''
-    return np.array([[M[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)] for fl1 in range(Nfl)] for fl0 in range(Nfl)])
+    Mt=M
+    if(tobdg):Mt=bdg.bdgblock(M,phid0,phid1)
+    return np.array([[Mt[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)] for fl1 in range(Nfl)] for fl0 in range(Nfl)])
         
 
 def setpair(M,M01,rid0,rid1,Nfl):
