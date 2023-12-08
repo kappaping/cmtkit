@@ -103,7 +103,7 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',toend=True):
     return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=False,filetfig=''):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=False,filetfig='',tobdg=False):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
@@ -112,7 +112,8 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
     # Obtain the number of bands.
     Nbd=np.shape(H(hsks[0][1]))[0]
     # Determine the chemical potential mu that shows the filling. If no showing the filling, let nf=0 to plot all bands in blue.
-    mu=bdth.fillingchempot(H,nf,ltype,prds,Nk)
+    if(tobdg==False):mu=bdth.fillingchempot(H,nf,ltype,prds,Nk)
+    elif(tobdg):mu=0.
     # Initial list of all plotted momenta.
     ks=np.array([])
     # Initial list of all plotted bands.

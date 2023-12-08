@@ -14,6 +14,7 @@ import lattice as ltc
 import brillouinzone as bz
 sys.path.append('../tightbinding')
 import tightbinding as tb
+import bogoliubovdegennes as bdg
 
 
 
@@ -88,12 +89,15 @@ def ftsites(ltype,rs,prds):
     return rucs,RUCRP
 
 
-def ftham(k,H,Nrfl,RDV,rucs,RUCRP):
+def ftham(k,H,Nrfl,RDV,rucs,RUCRP,tobdg=False):
     '''
     Fourier transform of the Hamiltonian H to momentum k with a given periodicity prds.
     '''
     Nruc=len(rucs)
-    HFT=[[sum([H[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(k,RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]
+    if(tobdg==False):HFT=np.array([[sum([H[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(k,RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])])
+    elif(tobdg):
+        Nst=tb.statenum(Nrfl)
+        HFT=np.block([[np.array([[sum([bdg.bdgblock(H,phid0,phid1)[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(k,RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for phid1 in range(2)] for phid0 in range(2)])
     return HFT
 
 
