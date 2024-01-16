@@ -34,13 +34,13 @@ def sites(rs,rplids,ltype,otype,os,res,to3d):
     elif(otype=='c'):os=np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os])
     # Plot
     if(to3d):
-        if(otype=='l' or otype=='c'):
+        if(otype=='l' or otype=='c' or otype=='fo'):
             sspl=mlab.points3d(r0s,r1s,r2s,colormap='coolwarm',resolution=res,scale_factor=0.5)
             sspl.glyph.scale_mode='scale_by_vector'
             sspl.module_manager.scalar_lut_manager.use_default_range=False
             sspl.module_manager.scalar_lut_manager.data_range=[-1.,1.]
             sspl.mlab_source.dataset.point_data.scalars=os
-        elif(otype=='s'):
+        elif(otype=='s' or otype=='fe'):
             [s0,s1,s2]=np.array(os).transpose()
             sspl=mlab.quiver3d(r0s,r1s,r2s,s0,s1,s2,colormap='coolwarm',mode='arrow',scale_factor=1.,resolution=res)
             sspl.glyph.color_mode='color_by_scalar'
@@ -51,7 +51,7 @@ def sites(rs,rplids,ltype,otype,os,res,to3d):
             sspl.glyph.glyph_source.glyph_source.tip_length=0.5
             sspl.glyph.glyph_source.glyph_source.tip_radius=0.1
     else:
-        if(otype=='l' or otype=='c'):
+        if(otype=='l' or otype=='c' or otype=='fo'):
             plt.scatter(r0s,r1s,s=1.,c=os,cmap='coolwarm',vmin=-1.,vmax=1.)
         if(otype=='s'):
             [s0,s1,s2]=np.array(os).transpose()
@@ -75,23 +75,33 @@ def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(otype=='c'):os=[np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os[0]]),np.array([(abs(ch)**0.4)*np.sign(ch) for ch in os[1]])]
     elif(otype=='s'):os=[np.array([(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0]]),np.array([(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1]])]
+    elif(otype=='fo'):os=[np.array([(abs(fo)**0.75)*np.sign(fo) for fo in os[0] for n in range(2)]),np.array([(abs(fo)**0.4)*np.sign(fo) for fo in os[1] for n in range(2)])]
+    elif(otype=='fe'):os=[np.array([sgn*(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0] for sgn in [1,-1]]),np.array([sgn*(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1] for sgn in [1,-1]])]
+    bmps=[(b[0]+b[1])/2. for b in bs]    # Middle points of bonds
+    bvs=[b[0]-b[1] for b in bs]  # Bond vectors
     # Imaginary
-    bmp=[(b[0]+b[1])/2. for b in bs]    # Middle points of bonds
-    bv=[b[0]-b[1] for b in bs]  # Bond vectors
-    bii=np.array([bmp[nb]-(os[1][nb]/2.)*bv[nb] for nb in range(len(bs))]).transpose()  # Initial point of current cone
-    biv=np.array([os[1][nb]*bv[nb] for nb in range(len(bs))]).transpose()   # Length of current cone
-    bspli=mlab.quiver3d(bii[0],bii[1],bii[2],biv[0],biv[1],biv[2],color=(0.4660,0.6740,0.1880),mode='cone',scale_factor=1.,resolution=res)
-    bspli.glyph.glyph_source.glyph_source.angle=20
-    bspli.glyph.glyph_source.glyph_source.height=0.6
+    if(otype=='c' or otype=='s'):
+        biis=np.array([bmps[nb]-(os[1][nb]/2.)*bvs[nb] for nb in range(len(bs))]).transpose()  # Initial point of current cone
+        bivs=np.array([os[1][nb]*bvs[nb] for nb in range(len(bs))]).transpose()   # Length of current cone
+        bspli=mlab.quiver3d(biis[0],biis[1],biis[2],bivs[0],bivs[1],bivs[2],color=(0.4660,0.6740,0.1880),mode='cone',scale_factor=1.,resolution=res)
+        bspli.glyph.glyph_source.glyph_source.angle=20
+        bspli.glyph.glyph_source.glyph_source.height=0.6
     # Real
-    [bv0,bv1,bv2]=np.array(bv).transpose()
-    [bi0,bi1,bi2]=np.array([b[1] for b in bs]).transpose()
-    bsplr=mlab.quiver3d(bi0,bi1,bi2,bv0,bv1,bv2,colormap='coolwarm',mode='cylinder',scale_factor=1.,resolution=res)
+    if(otype!='fo' and otype!='fe'):
+        [bvs0,bvs1,bvs2]=np.array(bvs).transpose()
+        [bis0,bis1,bis2]=np.array([b[1] for b in bs]).transpose()
+        rad=0.05
+    if(otype=='fo' or otype=='fe'):
+        bvs=[sgn*bv/2. for bv in bvs for sgn in [1,-1]]
+        [bvs0,bvs1,bvs2]=np.array(bvs).transpose()
+        [bis0,bis1,bis2]=np.array([bmp for bmp in bmps for n in range(2)]).transpose()
+        rad=0.1
+    bsplr=mlab.quiver3d(bis0,bis1,bis2,bvs0,bvs1,bvs2,colormap='coolwarm',mode='cylinder',scale_factor=1.,resolution=res)
     bsplr.glyph.color_mode='color_by_scalar'
     bsplr.module_manager.scalar_lut_manager.use_default_range=False
     bsplr.module_manager.scalar_lut_manager.data_range=[-1.,1.]
     bsplr.mlab_source.dataset.point_data.scalars=os[0]
-    bsplr.glyph.glyph_source.glyph_source.radius=0.05
+    bsplr.glyph.glyph_source.glyph_source.radius=rad
 #    bsplr=[mlab.plot3d(b[0],b[1],b[2],colormap='coolwarm',tube_radius=0.05,tube_sides=res/2) for b in bs]
 #    for n in range(len(bsplr)):
 #        bsplr[n].module_manager.scalar_lut_manager.use_default_range=False
@@ -145,7 +155,7 @@ def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],
 '''Plot the orders'''
 
 
-def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,filetfig=[],tobdg=False):
+def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,filetfig=[],tobdg=False):
     '''
     Plot the orders.
     '''
@@ -176,23 +186,23 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=
 #        odss[0]+=[ors]
     # Compute the pairing orders.
     if(tobdg):
-        # Compute the charge orders.
-        fos=bdg.flavoroddorder(P,nb1ids,Nrfl)
-        print('Flavor-odd pairing order')
-        print('site order max = ',fos[1][0],', site order average = ',sum(fos[0][0])/len(fos[0][0]))
-        print('real bond order max = ',fos[1][1],', real bond order average = ',sum(fos[0][1])/len(fos[0][1]))
-        print('imaginary bond order max = ',fos[1][2],', imaginary bond order average = ',sum(fos[0][2])/len(fos[0][2]))
-        odss+=[fos]
-        # If the flavor number > 1: Compute the spin orders.
+        # Compute the flavor-even orders.
+        feps=bdg.flavorevenpairingorder(P,nb1ids,Nrfl)
+        print('Flavor-even pairing order')
+        print('site order max = ',feps[1][0],', site order average = ',sum(feps[0][0])/len(feps[0][0]))
+        print('real bond order max = ',feps[1][1],', real bond order average = ',sum(feps[0][1])/len(feps[0][1]))
+        print('imaginary bond order max = ',feps[1][2],', imaginary bond order average = ',sum(feps[0][2])/len(feps[0][2]))
+        odss+=[feps]
+        # If the flavor number > 1: Compute the flavor-odd orders.
         if(Nrfl[1]>1):
-            fes=bdg.flavorevenorder(P,nb1ids,Nrfl)
-            print('Flavor-even pairing order')
-            print('site order max = ',fes[1][0],', site order average = ',sum(fes[0][0])/len(fes[0][0]))
-            print('real bond order max = ',fes[1][1],', real bond order average = ',sum(fes[0][1])/len(fes[0][1]))
-            print('imaginary bond order max = ',fes[1][2],', imaginary bond order average = ',sum(fes[0][2])/len(fes[0][2]))
-            odss+=[fes]
+            fops=bdg.flavoroddpairingorder(P,nb1ids,Nrfl)
+            print('Flavor-odd pairing order')
+            print('site order max = ',fops[1][0],', site order average = ',sum(fops[0][0])/len(fops[0][0]))
+            print('real bond order max = ',fops[1][1],', real bond order average = ',sum(fops[0][1])/len(fops[0][1]))
+            print('imaginary bond order max = ',fops[1][2],', imaginary bond order average = ',sum(fops[0][2])/len(fops[0][2]))
+            odss+=[fops]
     # Rescale the orders.
-    odssr=rescaledorder(odss)
+    odssr=rescaledorder(odss,scl)
     # Extract the orders to plot.
     if(len(rpls)==0):rpls=rs
     rplids=[ltc.siteid(rpl,rs) for rpl in rpls]
@@ -214,18 +224,18 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],res=10,dpi=300,to3d=True,show3d=
 #    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'s',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
     # Plot the pairing orders.
     if(tobdg):
-        # Plot the flavor-odd orders.
-        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'c',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
-        # If the flavor number > 2: Plot the spin orders.
-        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[3],'s',odsspl[3],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        # Plot the flavor-even pairing orders.
+        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'fe',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        # If the flavor number > 2: Plot the flavor-odd pairing orders.
+        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[3],'fo',odsspl[3],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
 
 
-def rescaledorder(oss):
+def rescaledorder(oss,scl):
     '''
     Rescale the orders for the plotting.
     '''
     omax=np.amax(np.array([os[1] for os in oss]))
-    return [[np.array(os[0][n])/omax for n in range(3)] for os in oss]
+    return [[scl*np.array(os[0][n])/omax for n in range(3)] for os in oss]
 
 
 

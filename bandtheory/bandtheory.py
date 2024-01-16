@@ -120,7 +120,7 @@ def fillingchempot(H,nf,ltype,prds,Nk):
     return mu
 
 
-def berrycurv(k,H,dks,nf=0.):
+def berrycurv(k,H,dks,nf=0.,tobdg=False):
     '''
     Compute the Berry curvatures at the momentum k.
     '''
@@ -139,7 +139,9 @@ def berrycurv(k,H,dks,nf=0.):
     UTs=[U.conj().T for U in Us]
     # Extract the Berry phase of the occupied bands.
     Nbd=np.shape(Us[0])[0]
-    Noc=round(Nbd*nf)
+    nft=nf
+    if(tobdg):nft=1./2.
+    Noc=round(Nbd*nft)
     dUs=[np.dot(UTs[(nkct+1)%Nkcts][:Noc,:],Us[nkct][:,:Noc]) for nkct in range(Nkcts)]
     dUcyc=np.linalg.multi_dot(dUs)
     dBf=cmath.phase(np.linalg.det(dUcyc))

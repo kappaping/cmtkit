@@ -11,6 +11,7 @@ import sys
 sys.path.append('../lattice')
 import lattice as ltc
 import tightbinding as tb
+import bogoliubovdegennes as bdg
 
 
 
@@ -55,38 +56,48 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli
     # Randomize the density matrix with occupation number Noc.
     if(Ptype=='rand'):
         print('Get a random density matrix')
-        P=projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
-        if(tobdg):
-            PBs=[[P,P],[P,-P.T]]
-            P01=unitary_group.rvs(Nst)
-            P01=(P01-P01.T)/2.
-            PBs[0][1]=P01
-            PBs[1][0]=P01.conj().T
-            P=np.block(PBs)
+        if(tobdg==False):
+            P=projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
+        elif(tobdg):
+            P=projdenmat(unitary_group.rvs(2*Nst),0,Nst,2*Nst)
+            P+=np.block([[np.zeros((Nst,Nst)),np.zeros((Nst,Nst))],[np.zeros((Nst,Nst)),-np.identity(Nst)]])
+            PBs=[[bdg.bdgblock(P,phid0,phid1) for phid1 in range(2)] for phid0 in range(2)]
+            P00=(PBs[0][0]+(-PBs[1][1].T))/2.
+            P01=(PBs[0][1]+PBs[1][0].conj().T)/2.
+            P01=(P01+(-P01.T))/2.
+            P=np.block([[P00,P01],[P01.conj().T,-P00.T]])
     # Read the density matrix from the file fileti.
     elif(Ptype=='read'):
         print('Read the density matrix from:', fileti)
-        P=joblib.load(fileti)
+        if(tobdg==False):P=joblib.load(fileti)
+        elif(tobdg):P=joblib.load(fileti)[0]
+    # Read the particle-hole density matrix from the file fileti and transform to a Bogoliubov-de Gennes form.
+    elif(Ptype=='phtobdg'):
+        print('Get a BdG density matrix by reading the particle-hole one from:', fileti)
+        P00=joblib.load(fileti)
+        P=bdg.phmattobdg(P00)
     # Copy the density matrix from the one in file fileti with size Nbli under periodic boundary condition.
     elif(Ptype=='copy'):
         print('Copy the density matrix with system size',Nbli,'from:', fileti)
-        P=denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli)
+        P=denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli,tobdg)
     # Others: The density matrix is assigned by other functions.
     else:
         print('Assign the density matrix as:', Ptype)
         # Add a uniform density distribution with filling nf to the density matrix.
-        [tb.termmat(P,(1./2.)*nf,rid,fl,rid,fl,Nrfl[1]) for rid in range(Nrfl[0]) for fl in range(Nrfl[1])]
+        if(tobdg==False):P+=nf*np.identity(Nst)
+        elif(tobdg):P+=nf*np.identity(2*Nst)
     if(toptb):
         print('Perturb the density matrix at scale =',ptb)
-        P=(1.-ptb)*P+ptb*projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
+        if(tobdg==False):P=(1.-ptb)*P+ptb*projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
+        elif(tobdg):P=(1.-ptb)*P+ptb*projdenmat(unitary_group.rvs(2*Nst),0,Nst,2*Nst)
     if(toflrot):
         print('Rotate the flavors of the density matrix')
-        P=flrot(P,Nrfl,Ufl)
+        P=flrot(P,Nrfl,Ufl,tobdg)
 
     return P
 
 
-def denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli):
+def denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli,tobdg=False):
     '''
     Density matrix copy: Copy the density matrix from the one in file fileti with size Nbli under periodic boundary condition.
     Return: A density matrix with size Nrfl.
@@ -103,11 +114,13 @@ def denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli):
     # Find out the ids of lattice sites rs in the initial lattice ris.
     rcpids=[ltc.siteid([[r[0][n]%Nbli[n] for n in range(3)],r[1]],ris) for r in rs]
     # Initialize the density matrix.
-    P=np.zeros((tb.statenum(Nrfl),tb.statenum(Nrfl)),dtype=complex)
+    if(tobdg==False):P=np.zeros((tb.statenum(Nrfl),tb.statenum(Nrfl)),dtype=complex)
+    elif(tobdg):P=np.zeros((2*tb.statenum(Nrfl),2*tb.statenum(Nrfl)),dtype=complex)
     # Find out the shortest displacements of the whole lattice under periodic boundary condition.
     nptrs=ltc.periodictrsl(Nbl,1)
     # Read the initial density matrix.
-    Pi=joblib.load(fileti)
+    if(tobdg==False):Pi=joblib.load(fileti)
+    elif(tobdg):Pi=joblib.load(fileti)[0]
     # Duplicate the matrix elements.
     for rid0 in range(Nrfl[0]):
         for rid1 in range(Nrfl[0]):
@@ -117,14 +130,22 @@ def denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli):
                 r1dm=ltc.pairdist(ltype,rs[rid0],rs[rid1],True,nptrs)[1][0]
                 # Find out the id of r1dm in the initial lattice ris.
                 r1dmcpid=ltc.siteid([[r1dm[0][n]%Nbli[n] for n in range(3)],r1dm[1]],ris)
-                # Determine the pair density matrix of r0 and r1 from the initial density matrix.
-                P01=tb.pairmat(Pi,rcpids[rid0],r1dmcpid,Nrfl[1])
-                # Assign the pair density matrix.
-                tb.setpair(P,P01,rid0,rid1,Nrfl[1])
+                if(tobdg==False):
+                    # Determine the pair density matrix of r0 and r1 from the initial density matrix.
+                    Pi01=tb.pairmat(Pi,rcpids[rid0],r1dmcpid,Nrfl[1])
+                    # Assign the pair density matrix.
+                    tb.setpair(P,Pi01,rid0,rid1,Nrfl[1])
+                elif(tobdg):
+                    for phid0 in range(2):
+                        for phid1 in range(2):
+                            # Determine the pair density matrix of r0 and r1 from the initial density matrix.
+                            Pi01=tb.pairmat(Pi,rcpids[rid0],r1dmcpid,Nrfl[1],tobdg=tobdg,phid0=phid0,phid1=phid1)
+                            # Assign the pair density matrix.
+                            tb.setpair(P,Pi01,rid0,rid1,Nrfl[1],tobdg=tobdg,phid0=phid0,phid1=phid1)
     return P
 
 
-def flrot(P,Nrfl,Ufl):
+def flrot(P,Nrfl,Ufl,tobdg):
     '''
     Rotate the flavors of the density matrix.
     Return: A density matrix of the same size as P.
@@ -134,9 +155,9 @@ def flrot(P,Nrfl,Ufl):
     '''
     # Initialize a zero density matrix.
     Nst=tb.statenum(Nrfl)
-    Pt=np.zeros((Nst,Nst),dtype=complex)
     # Add the rotated pair matrices to the density matrix.
-    [tb.setpair(Pt,np.linalg.multi_dot([Ufl.conj().T,tb.pairmat(P,rid0,rid1,Nrfl[1]),Ufl]),rid0,rid1,Nrfl[1]) for rid0 in range(Nrfl[0]) for rid1 in range(Nrfl[0])]
+    if(tobdg==False):Pt=np.block([[np.linalg.multi_dot([Ufl.conj().T,tb.pairmat(P,rid0,rid1,Nrfl[1]),Ufl]) for rid1 in range(Nrfl[0])] for rid0 in range(Nrfl[0])])
+    elif(tobdg):Pt=np.block([[np.block([[np.linalg.multi_dot([Ufl.conj().T,tb.pairmat(P,rid0,rid1,Nrfl[1],tobdg,phid0,phid1),Ufl]) for rid1 in range(Nrfl[0])] for rid0 in range(Nrfl[0])]) for phid1 in range(2)] for phid0 in range(2)])
     return Pt
 
 

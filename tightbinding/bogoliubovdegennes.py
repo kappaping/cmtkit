@@ -56,31 +56,30 @@ def pairpairing(P,rid0,rid1,Nfl):
     return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.dot((1./sqrt(2.))*tb.paulimat(n),1.j*tb.paulimat(2)).conj().T)) for n in [0,1,2,3]])
 
 
-def flavoroddorder(P,nb1ids,Nrfl):
+def flavoroddpairingorder(P,nb1ids,Nrfl):
     '''
     Compute the singlet pairing of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
     # Site order
-    sfos=[pairpairing(P,rid,rid,Nrfl[1])[0].real for rid in range(Nrfl[0])]
-    # Rotate the site orders and cancel the complex phase.
-#    cphase=e**(-1.j*cmath.phase(sfos[0]))
-#    sfos=[(sfo*cphase).real for sfo in sfos]
+    sfos=[pairpairing(P,rid,rid,Nrfl[1])[0] for rid in range(Nrfl[0])]
+    sfos=[abs(sfo)*np.sign(sfo.real) for sfo in sfos]
     # Extract the order as the deviation from the average
     sfosa=[abs(sfo) for sfo in sfos]
     sfosmax=max(sfosa)
     # Bond order
     bfos=[pairpairing(P,pair[0],pair[1],Nrfl[1])[0] for pair in nb1ids]
     # Distinguish the real and imaginary bonds
-    bfosr=[bfo.real for bfo in bfos]
+    bfosr=[abs(bfo)*np.sign(bfo.real) for bfo in bfos]
+#    bfosr=[abs(bfo)*np.angle(bfo) for bfo in bfos]
     bfosra=[abs(bfor) for bfor in bfosr]
-    bfosi=[bfo.imag for bfo in bfos]
+    bfosi=[0. for bfo in bfos]
     bfosia=[abs(bfoi) for bfoi in bfosi]
     bfosrmax,bfosimax=max(bfosra),max(bfosia)
 
     return [[sfos,bfosr,bfosi],[sfosmax,bfosrmax,bfosimax]]
 
 
-def flavorevenorder(P,nb1ids,Nrfl):
+def flavorevenpairingorder(P,nb1ids,Nrfl):
     '''
     Compute the triplet pairing of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
@@ -91,8 +90,8 @@ def flavorevenorder(P,nb1ids,Nrfl):
     # Bond order
     bfes=[pairpairing(P,pair[0],pair[1],Nrfl[1])[1:4] for pair in nb1ids]
     # Distinguish the real and imaginary bonds
-    bfesr=[bfe.real for bfe in bfes]
-    bfesi=[bfe.imag for bfe in bfes]
+    bfesr=[np.array([0.,0.,np.linalg.norm(bfe)*np.sign(bfe[2].real)]) for bfe in bfes]
+    bfesi=[0.*bfe.imag for bfe in bfes]
     bfesrn=[np.linalg.norm(bfer) for bfer in bfesr]
     bfesin=[np.linalg.norm(bfei) for bfei in bfesi]
     bfesrmax,bfesimax=max(bfesrn),max(bfesin)

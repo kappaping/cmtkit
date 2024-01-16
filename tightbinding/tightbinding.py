@@ -36,7 +36,7 @@ def statenum(Nrfl):
     return Nrfl[0]*Nrfl[1]
 
 
-def termmat(M,m,rid0,fl0,rid1,fl1,Nfl,tobdg=False,phid0=0,phid1=0):
+def termmat(M,m,rid0,fl0,rid1,fl1,Nfl,symtype='herm',tobdg=False,phid0=0,phid1=0):
     '''
     Assign matrix elements: Assign the coupling mt between states (rid0,fl0) and (rid1,fl1) to the matrix Mt under Hermitian condition.
     M: Matrix to be modified.
@@ -45,13 +45,16 @@ def termmat(M,m,rid0,fl0,rid1,fl1,Nfl,tobdg=False,phid0=0,phid1=0):
     fl0, fl1: Flavor indices.
     Nfl: Flavor number.
     '''
+    if(symtype=='herm'):mt=np.conj(m)
+    elif(symtype=='symm'):mt=m
+    elif(symtype=='asym'):mt=-m
     if(tobdg==False):
         M[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)]+=m
-        M[stateid(rid1,fl1,Nfl),stateid(rid0,fl0,Nfl)]+=np.conj(m)
+        M[stateid(rid1,fl1,Nfl),stateid(rid0,fl0,Nfl)]+=mt
     elif(tobdg):
         Nst=round(M.shape[0]/2)
         M[phid0*Nst+stateid(rid0,fl0,Nfl),phid1*Nst+stateid(rid1,fl1,Nfl)]+=m
-        M[phid1*Nst+stateid(rid1,fl1,Nfl),phid0*Nst+stateid(rid0,fl0,Nfl)]+=np.conj(m)
+        M[phid1*Nst+stateid(rid1,fl1,Nfl),phid0*Nst+stateid(rid0,fl0,Nfl)]+=mt
 
 
 '''Set Hamiltonian'''
@@ -107,13 +110,13 @@ def pairmat(M,rid0,rid1,Nfl,tobdg=False,phid0=0,phid1=0):
     return np.array([[Mt[stateid(rid0,fl0,Nfl),stateid(rid1,fl1,Nfl)] for fl1 in range(Nfl)] for fl0 in range(Nfl)])
         
 
-def setpair(M,M01,rid0,rid1,Nfl):
+def setpair(M,M01,rid0,rid1,Nfl,tobdg=False,phid0=0,phid1=0):
     '''
     Set the matrix for a pair of lattice sites.
     M01: Matrix of the pairs rid0 and rid1.
     1/2 factors: Compensate with the Hermitian assignment in termmat.
     '''
-    [termmat(M,(1./2.)*M01[fl0,fl1],rid0,fl0,rid1,fl1,Nfl) for fl0 in range(Nfl) for fl1 in range(Nfl)]
+    [termmat(M,(1./2.)*M01[fl0,fl1],rid0,fl0,rid1,fl1,Nfl,tobdg=tobdg,phid0=phid0,phid1=phid1) for fl0 in range(Nfl) for fl1 in range(Nfl)]
 
 
 def setpairpm(M,v,rid0,rid1,Nfl):
@@ -128,18 +131,38 @@ def setpairpm(M,v,rid0,rid1,Nfl):
 
 
 
+'''Temperature.'''
+
+
+def fermi(z,T):
+    '''
+    Define the Fermi function.
+    Return: Fermi function 1/(e^(z/T)+1).
+    z: Characteristic energy, usually set as ee-mu with energy ee and chemical potential mu.
+    T: Temperature.
+    '''
+    if(abs(z/T)<=32.):return 1./(e**(z/T)+1.)
+    elif(z/T>32.):return 0.
+    elif(z/T<-32.):return 1.
+
+
+
+
 '''Plot the energy spectrum'''
 
-def plotenergy(H,Nrfl,nf,toprint=False,filetfig=''):
+def plotenergy(H,Nrfl,nf,toprint=False,filetfig='',tobdg=False):
     '''
     Plot the energy spectrum of the Hamiltonian H.
     '''
-    es=np.linalg.eigvalsh(H)
+    ees=np.linalg.eigvalsh(H)
     Nst=statenum(Nrfl)
-    Noc=round(Nst*nf)
+    if(tobdg==False):Noc=round(Nst*nf)
+    elif(tobdg):
+        Noc=Nst
+        Nst*=2
     plt.rcParams.update({'font.size':30})
     cs=Noc*['g']+(Nst-Noc)*['b']
-    plt.scatter(range(len(es)),es,c=cs)
+    plt.scatter(range(len(ees)),ees,c=cs)
     plt.xlabel('n')
     plt.ylabel('$e_n$')
     plt.gcf()

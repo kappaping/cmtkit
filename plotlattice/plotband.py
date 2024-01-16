@@ -215,7 +215,7 @@ def plotbz(ltype,prds,todata=False,dataks=[],bzvol=1.,tolabel=False,tosave=False
     ax=plt.gca()
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
-    if(tosave==True):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
+    if(tosave):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
     plt.show()
 
 
