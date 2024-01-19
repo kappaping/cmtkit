@@ -83,7 +83,17 @@ def hskcontour(ltype,prds,cttype='s'):
     elif(bztype=='hx'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0]]
 
 
-def listbz(ltype,prds,Nk,bzop=False):
+def inbz(k,kecs,Nsdp,bzop=False):
+    # If the Brillouin zone is open, exclude the momenta at one side.
+    if(bzop==True): dkb=1e-13
+    else: dkb=0.
+    # Define a function which measures whether a momentum k is in the width of the Brillouin zone [-kec,kec].
+    def inbzwidth(k,kec,dkb):
+        return -np.linalg.norm(kec)**2-1e-14<np.dot(k,kec)<np.linalg.norm(kec)**2+1e-14-dkb
+    return np.prod(np.array([inbzwidth(k,((-1)**nsdp)*kecs[nsdp],dkb) for nsdp in range(Nsdp)]))
+
+
+def listbz(ltype,prds,Nkc,bzop=False):
     '''
     List the momenta in the Brillouin zone.
     '''
@@ -91,25 +101,18 @@ def listbz(ltype,prds,Nk,bzop=False):
     hsks=hskpoints(ltype,prds)
     # Number of side pairs.
     Nsdp=round((len(hsks)-1)/2)
-    # Edge centers.
-    kecs=[hsks[n+1][1] for n in range(Nsdp)]
-    # List of momenta.
-    ks=[]
-    # If the Brillouin zone is open, exclude the momenta at one side.
-    if(bzop==True): dkb=1e-13
-    else: dkb=0.
-    # Define a function which measures whether a momentum k is in the width of the Brillouin zone [-kec,kec].
-    def inbzwidth(k,kec,dkb):
-        return -np.linalg.norm(kec)**2-1e-14<np.dot(k,kec)<np.linalg.norm(kec)**2+1e-14-dkb
     # Edge centers of the Brillouin zone.
     kecs=[hsks[nsdp+1][1] for nsdp in range(Nsdp)]
+    # List of momenta.
+    ks=[]
     # List the momentum bounded by the Brillouin-zone edges.
-    for n0 in np.linspace(-2.,2.,num=2*Nk+1):
-        for n1 in np.linspace(-2.,2.,num=2*Nk+1):
+    for n0 in np.linspace(-2.,2.,num=2*Nkc+1):
+        for n1 in np.linspace(-2.,2.,num=2*Nkc+1):
             k=n0*kecs[0]+n1*kecs[1]
-            if(np.array_equal(np.array([inbzwidth(k,((-1)**nsdp)*kecs[nsdp],dkb) for nsdp in range(Nsdp)]),np.array([1 for nsdp in range(Nsdp)]))):ks.append(k)
+            if(inbz(k,kecs,Nsdp,bzop=bzop)):ks.append(k)
+    print('Momentum-cut number Nkc =',Nkc,', total number of momentum points =',len(ks))
     # List of corners of momentum-space grids.
-    dks=[(1./Nk)*hsks[Nsdp+1+nsdp][1] for nsdp in range(Nsdp)]
+    dks=[(1./Nkc)*hsks[Nsdp+1+nsdp][1] for nsdp in range(Nsdp)]
     return [ks,dks]
 
 

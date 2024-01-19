@@ -81,7 +81,7 @@ def ftsites(ltype,rs,prds):
     print('periodicity = ',prds)
     rucs,Nuc,Nruc=ucsites(ltype,prds)
     # List the unit-cell ids for all r in rs
-    rucids=np.array([ucsiteid(rs[rid],prds,rucs,Nuc) for rid in range(len(rs))])
+    rucids=np.array([ucsiteid(r,prds,rucs,Nuc) for r in rs])
     # List the lattice-site ids for all ruc in rucs
     rucrids=[ltc.siteid(rucs[rucid],rs) for rucid in range(Nruc)]
     # Determine the list [rid0,rid1] for each site rucid0 in the unit cell 

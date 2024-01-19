@@ -18,10 +18,10 @@ print(ltc.ltcname(ltype))
 
 prds=[1,1,1]
 
-Nk=12
+Nkc=12
 
 bzop=True
-ks,dks=bz.listbz(ltype,prds,Nk,bzop)
+ks,dks=bz.listbz(ltype,prds,Nkc,bzop)
 print('Number of points =',len(ks))
 
 todata=True
