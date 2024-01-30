@@ -18,14 +18,14 @@ print(ltc.ltcname(ltype))
 
 prds=[1,1,1]
 
-Nkc=12
+Nkc=30
 
 bzop=True
 ks,dks=bz.listbz(ltype,prds,Nkc,bzop)
 print('Number of points =',len(ks))
 
 todata=True
-dataks=[k+np.array([0.,0.,1.]) for k in ks]
+data=[1. for k in ks]
 #if(len(dks)==2):kcts=[kct for k in ks for kct in [k+dks[0],k+dks[1],k-dks[0],k-dks[1]]]
 #elif(len(dks)==3):kcts=[kct for k in ks for kct in [k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]]
 #dataks+=kcts
@@ -35,7 +35,8 @@ dataks=[k+np.array([0.,0.,1.]) for k in ks]
 filetfig='../../figs/bz.pdf'
 tosave=True
 tolabel=True
-plbd.plotbz(ltype,prds,todata,dataks,tolabel,tosave,filetfig)
+bzop=True
+plbd.plotbz(ltype,prds,ks,todata=todata,data=data,ptype='gd',dks=dks,bzop=bzop,tolabel=tolabel,tosave=tosave,filetfig=filetfig)
 
 
 

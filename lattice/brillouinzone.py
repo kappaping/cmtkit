@@ -85,12 +85,12 @@ def hskcontour(ltype,prds,cttype='s'):
 
 def inbz(k,kecs,Nsdp,bzop=False):
     # If the Brillouin zone is open, exclude the momenta at one side.
-    if(bzop==True): dkb=1e-13
+    if(bzop): dkb=1e-13
     else: dkb=0.
     # Define a function which measures whether a momentum k is in the width of the Brillouin zone [-kec,kec].
     def inbzwidth(k,kec,dkb):
-        return -np.linalg.norm(kec)**2-1e-14<np.dot(k,kec)<np.linalg.norm(kec)**2+1e-14-dkb
-    return np.prod(np.array([inbzwidth(k,((-1)**nsdp)*kecs[nsdp],dkb) for nsdp in range(Nsdp)]))
+        return -np.linalg.norm(kec)**2-1e-14+dkb<np.dot(k,kec)<np.linalg.norm(kec)**2+1e-14
+    return np.prod(np.array([inbzwidth(k,(((-1)**(Nsdp-2))**np.sign(nsdp))*kecs[nsdp],dkb) for nsdp in range(Nsdp)]))
 
 
 def listbz(ltype,prds,Nkc,bzop=False):
@@ -114,6 +114,17 @@ def listbz(ltype,prds,Nkc,bzop=False):
     # List of corners of momentum-space grids.
     dks=[(1./Nkc)*hsks[Nsdp+1+nsdp][1] for nsdp in range(Nsdp)]
     return [ks,dks]
+
+
+def gridcorners(k,dks):
+    '''
+    List the corners of the small grid around k.
+    '''
+    # Rectangular Brillouin zone: Cut a rectangular grid.
+    if(len(dks)==2):kcts=[k+dks[0],k+dks[1],k-dks[0],k-dks[1]]
+    # Hexagonal Brillouin zone: Cut a hexagonal grid.
+    elif(len(dks)==3):kcts=[k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]
+    return kcts
 
 
 

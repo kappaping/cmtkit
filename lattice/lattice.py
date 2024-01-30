@@ -146,9 +146,9 @@ def pairdist(ltype,r0,r1,totrsl=False,nptrs=[]):
         rds=np.array([pairdist(ltype,r0,r1ptr) for r1ptr in r1ptrs])
         # Define the distance as the minimal result.
         rdmin=min(rds)
-        r1dmids=np.argwhere(abs(rds-rdmin)<1e-12)
-        r1dms=[r1ptrs[r1dmid[0]] for r1dmid in r1dmids]
-        rdvdms=[pos(r0,ltype)-pos(r1ptrs[r1dmid[0]],ltype) for r1dmid in r1dmids]
+        r1dmids=np.argwhere(abs(rds-rdmin)<1e-12).flatten().tolist()
+        r1dms=[r1ptrs[r1dmid] for r1dmid in r1dmids]
+        rdvdms=[pos(r0,ltype)-pos(r1dm,ltype) for r1dm in r1dms]
         return [rdmin,r1dms,rdvdms]
 
 
@@ -167,7 +167,7 @@ def ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=''):
         RD=[[RDS[rid0][rid1][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
         RDV=[[RDS[rid0][rid1][2][0] for rid1 in range(len(rs))] for rid0 in range(len(rs))]
         # Determine the distances at the n-th neighbors.
-        rds=sorted(RD[0])
+        rds=np.sort(np.array(RD).flatten()).tolist()
         rnbs=[]
         rdt=-1.
         for rd in rds:

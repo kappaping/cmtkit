@@ -174,7 +174,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
     plt.show()
 
 
-def plotbz(ltype,prds,todata=False,dataks=[],bzvol=1.,tolabel=False,tosave=False,filetfig=''):
+def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,bzvol=1.,tolabel=False,tosave=False,filetfig=''):
     '''
     Draw the Brillouin zone.
     '''
@@ -209,10 +209,47 @@ def plotbz(ltype,prds,todata=False,dataks=[],bzvol=1.,tolabel=False,tosave=False
         plt.scatter(hsklxs,hsklys,c='r')
     # If there is data to present, map it out.
     if(todata):
-        [k0s,k1s,data]=np.array(dataks).transpose()
-        camax=max(max(abs(data)),1./bzvol)
-        plt.scatter(k0s,k1s,s=40.,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
+        if(len(data)==0):data=len(ks)*[0.]
+        if(ptype=='pt'):
+            k0s,k1s,k2s=np.array(ks).T
+            camax=max(np.max(np.abs(np.array(data))),1./bzvol)
+            plt.scatter(k0s,k1s,s=40.,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
+        elif(ptype=='gd'):
+            kctss=[bz.gridcorners(k,dks) for k in ks]
+            if(bzop==False):
+                # All high-symmetry points of the Brillouin zone.
+                hsks=bz.hskpoints(ltype,prds)
+                # Number of side pairs.
+                Nsdp=round((len(hsks)-1)/2)
+                Nsft=2*(Nsdp-2)+1
+                # Edge centers of the Brillouin zone.
+                kecs=[hsks[nsdp+1][1] for nsdp in range(Nsdp)]
+                for nkcts in range(len(kctss)):
+                    kcts=kctss[nkcts]
+                    kctst=[]
+                    Nkct=len(kcts)
+                    for nkct in range(Nkct):
+                        if(bz.inbz(kcts[nkct],kecs,Nsdp,bzop=bzop)):kctst+=[kcts[nkct]]
+                        elif(bz.inbz(kcts[nkct],kecs,Nsdp,bzop=bzop)==False):
+                            if(bz.inbz(kcts[(nkct-Nsft)%Nkct],kecs,Nsdp,bzop=bzop)):kctst+=[(kcts[nkct]+kcts[(nkct-Nsft)%Nkct])/2.]
+                            elif(bz.inbz(kcts[(nkct+Nsft)%Nkct],kecs,Nsdp,bzop=bzop)):kctst+=[(kcts[nkct]+kcts[(nkct+Nsft)%Nkct])/2.]
+                            else:kctst+=[(kcts[nkct]+kcts[(nkct+Nsdp)%Nkct])/2.]
+                    kctss[nkcts]=kctst
+            kctss=[np.array(kcts)[:,0:2] for kcts in kctss]
+            cmap=matplotlib.cm.get_cmap('coolwarm')
+            camax=max(np.max(np.abs(np.array(data))),1./bzvol)
+            norm=matplotlib.colors.Normalize(vmin=-camax,vmax=camax)
+            cs=[cmap(norm(data[nk])) for nk in range(len(ks))]
+            for nk in range(len(ks)):
+                plgk=Polygon(kctss[nk],facecolor=cs[nk],edgecolor='None',linewidth=0)
+                ax.add_patch(plgk)
+            if(bzop==False):
+                plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
+                ax.add_patch(plg)
     ax=plt.gca()
+    lim=np.max(np.abs(np.array(bzcs)))*1.1
+    ax.set_xlim([-lim,lim])
+    ax.set_ylim([-lim,lim])
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
     if(tosave):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
