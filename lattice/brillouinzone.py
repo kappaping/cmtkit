@@ -5,6 +5,7 @@
 from math import *
 import cmath as cmt
 import numpy as np
+from scipy.spatial.transform import Rotation
 import sympy
 import joblib
 
@@ -22,7 +23,7 @@ def typeofbz(ltype,prds):
     # Rectangular Brillouin zone.
     if(ltype=='sq' or (prds[0]>1 and prds[1]==1) or (prds[0]==1 and prds[1]>1)):return 'rc'
     # Hexagonal Brillouin zone.
-    elif(ltype in ['tr','ka']):return 'hx'
+    elif(ltype in ['tr','ho','ka']):return 'hx'
 
 
 def ucblvecs(ltype,prds):
@@ -38,7 +39,7 @@ def ucblvecs(ltype,prds):
     # sqrt2 x sqrt2 on square lattice
     elif(ltype=='sq' and max(prds)==22):return [blvs[0]+blvs[1],-blvs[0]+blvs[1],blvs[2]]
     # n x 1 on lattices with triangular Bravais lattice
-    elif(ltype in ['tr','ka'] and bztype=='rc'):
+    elif(ltype in ['tr','ho','ka'] and bztype=='rc'):
         if(np.argmax(np.array(prds))==0):return [(prds[0]/2.)*(-2*blvs[0]+blvs[1]),blvs[1],blvs[2]]
         elif(np.argmax(np.array(prds))==1):return [(prds[1]/2.)*(-1*blvs[0]+2*blvs[1]),blvs[0],blvs[2]]
     # sqrt3 x sqrt3 on lattices with triangular Bravais lattice
@@ -125,6 +126,23 @@ def gridcorners(k,dks):
     # Hexagonal Brillouin zone: Cut a hexagonal grid.
     elif(len(dks)==3):kcts=[k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]
     return kcts
+
+
+def weightedgrids(ltype,prds,Nkc):
+    k0s=listbz(ltype,prds,Nkc,bzop=True)[0]
+    # Type of Brillouin zone.
+    bztype=typeofbz(ltype,prds)
+    if(bztype=='rc'):Nrot=4
+    elif(bztype=='hx'):Nrot=6
+    k0s=[np.dot(Rotation.from_rotvec(nrot*(2*pi/Nrot)*np.array([0,0,1])).as_matrix(),k0) for k0 in k0s for nrot in range(Nrot)]
+    k1s=listbz(ltype,prds,Nkc,bzop=False)[0]
+    kws=[[0,k1] for k1 in k1s]
+    for k0 in k0s:
+        kws[np.argwhere(np.array([np.linalg.norm(k0-k1)<1e-14 for k1 in k1s]))[0,0]][0]+=1
+    Nk0=len(k0s)
+    for nkw in range(len(kws)):
+        kws[nkw][0]*=(1./Nk0)
+    return kws
 
 
 
