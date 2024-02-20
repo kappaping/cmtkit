@@ -111,7 +111,7 @@ def listbz(ltype,prds,Nkc,bzop=False):
         for n1 in np.linspace(-2.,2.,num=2*Nkc+1):
             k=n0*kecs[0]+n1*kecs[1]
             if(inbz(k,kecs,Nsdp,bzop=bzop)):ks.append(k)
-    print('Momentum-cut number Nkc =',Nkc,', total number of momentum points =',len(ks))
+    print('Momentum-cut number Nkc =',Nkc,', Brillouin-zone openess =',bzop,', total number of momentum points =',len(ks))
     # List of corners of momentum-space grids.
     dks=[(1./Nkc)*hsks[Nsdp+1+nsdp][1] for nsdp in range(Nsdp)]
     return [ks,dks]
