@@ -18,7 +18,7 @@ print(ltc.ltcname(ltype))
 
 prds=[23,23,1]
 
-Nkc=1
+Nkc=9
 
 bzop=False
 ks,dks=bz.listbz(ltype,prds,Nkc,bzop)
@@ -40,8 +40,8 @@ data=[datae*100 for datae in data]
 
 filetfig='../../figs/bz.pdf'
 tosave=True
-tolabel=True
-plbd.plotbz(ltype,prds,ks,todata=todata,data=data,ptype='pt',dks=dks,bzop=bzop,tolabel=tolabel,tosave=tosave,filetfig=filetfig)
+tolabel=False
+plbd.plotbz(ltype,prds,ks,todata=todata,data=data,ptype='gd',dks=dks,bzop=bzop,tolabel=tolabel,tosave=tosave,filetfig=filetfig)
 
 
 
