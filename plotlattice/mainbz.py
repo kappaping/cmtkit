@@ -13,10 +13,10 @@ import bandtheory as bdth
 import plotband as plbd
 
 
-ltype='tr'
+ltype='ka'
 print(ltc.ltcname(ltype))
 
-prds=[1,1,1]
+prds=[23,23,1]
 
 Nkc=1
 
@@ -24,7 +24,7 @@ bzop=False
 ks,dks=bz.listbz(ltype,prds,Nkc,bzop)
 print('Number of points =',len(ks))
 
-todata=True
+todata=False
 data=[1. for k in ks]
 #if(len(dks)==2):kcts=[kct for k in ks for kct in [k+dks[0],k+dks[1],k-dks[0],k-dks[1]]]
 #elif(len(dks)==3):kcts=[kct for k in ks for kct in [k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]]
