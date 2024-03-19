@@ -16,7 +16,7 @@ import plotband as plbd
 ltype='ka'
 print(ltc.ltcname(ltype))
 
-prds=[23,23,1]
+prds=[1,2,1]
 
 Nkc=9
 
@@ -29,18 +29,20 @@ data=[1. for k in ks]
 #if(len(dks)==2):kcts=[kct for k in ks for kct in [k+dks[0],k+dks[1],k-dks[0],k-dks[1]]]
 #elif(len(dks)==3):kcts=[kct for k in ks for kct in [k+dks[0],k-dks[2],k+dks[1],k-dks[0],k+dks[2],k-dks[1]]]
 #dataks+=kcts
+'''
 kws=bz.weightedgrids(ltype,prds,Nkc)
 data=[kw[0] for kw in kws]
 ks=[kw[1] for kw in kws]
 print('max data =',max(data))
 print('min data =',min(data))
 data=[datae*100 for datae in data]
+'''
 
 #dataks=plbd.fermisurface(H,nf,ltype,uctype,Nk)
 
 filetfig='../../figs/bz.pdf'
 tosave=True
-tolabel=False
+tolabel=True
 plbd.plotbz(ltype,prds,ks,todata=todata,data=data,ptype='gd',dks=dks,bzop=bzop,tolabel=tolabel,tosave=tosave,filetfig=filetfig)
 
 
