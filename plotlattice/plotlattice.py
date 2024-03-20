@@ -4,6 +4,7 @@
 
 from math import *
 import numpy as np
+import matplotlib as mplb
 import matplotlib.pyplot as plt
 from mayavi import mlab
 
@@ -238,7 +239,12 @@ def rescaledorder(oss,scl):
     return [[scl*np.array(os[0][n])/omax for n in range(3)] for os in oss]
 
 
-
+def printcbar(filet,cmap='coolwarm'):
+    fig=plt.figure()
+    ax=fig.add_axes([0.80,0.05,0.1,0.9])
+    cb=mplb.colorbar.ColorbarBase(ax,orientation='vertical',cmap=cmap)
+    cb.set_ticks([])
+    plt.savefig(filet,bbox_inches='tight')
 
 
 
