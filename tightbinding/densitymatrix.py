@@ -6,12 +6,17 @@ from math import *
 import numpy as np
 from scipy.stats import unitary_group
 import joblib
+import time
+import sparse
 
 import sys
 sys.path.append('../lattice')
 import lattice as ltc
+import brillouinzone as bz
 import tightbinding as tb
 import bogoliubovdegennes as bdg
+import dmtriangular as dmtr
+import dmkagome as dmka
 
 
 
@@ -29,7 +34,7 @@ def projdenmat(U,n0,n1,Nst):
     return np.round(np.linalg.multi_dot([U,D,UT]),25)
 
 
-def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
+def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=np.array([]),Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
     '''
     Set up a density matrix.
     Return: A density matrix.
@@ -86,6 +91,9 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),Nbli
         # Add a uniform density distribution with filling nf to the density matrix.
         if(tobdg==False):P+=nf*np.identity(Nst)
         elif(tobdg):P+=nf*np.identity(2*Nst)
+        dpe=0.1
+        if(ltype=='tr'):dmtr.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
+        elif(ltype=='ka'):dmka.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
     if(toptb):
         print('Perturb the density matrix at scale =',ptb)
         if(tobdg==False):P=(1.-ptb)*P+ptb*projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
@@ -255,6 +263,73 @@ def orbitalorder(P,nb1ids,Nrfl,tobdg=False):
     bobsrmax,bobsimax=max(bobsrn),max(bobsin)
 
     return [[sobs,bobsr,bobsi],[sobsmax,bobsrmax,bobsimax]]
+
+
+
+
+'''Fourier transform'''
+
+
+def momentumpairs(ks,qs,ltype,prds,chipm):
+    '''
+    Given the momenta ks and transfer momenta qs, list the momenta chipm*k+q for k in ks.
+    Return: A matrix of ids of chipm*k=q.
+    ks: Integral momenta.
+    qs: Transfer momenta.
+    ltype: Lattice type.
+    prds: Periodicity of unit cell.
+    chipm: 1 for particle-hole channel and -1 for particle-particle channel.
+    '''
+    print('Get the momentum pairs with chipm =',chipm)
+    t0=time.time()
+    # All high-symmetry points of the Brillouin zone.
+    hsks=bz.hskpoints(ltype,prds)
+    # Number of side pairs.
+    Nsdp=round((len(hsks)-1)/2)
+    # Edge centers of the Brillouin zone.
+    kecs=[hsks[nsdp+1][1] for nsdp in range(Nsdp)]
+    # Reciprocal lattice vectors.
+    krls=np.array([2.*hsks[nkrl][1] for nkrl in [1,2]])
+    Nk=len(ks)
+    # Define the function which moves chipm*k+q into the Brillouin zone.
+    def moveinbz(kq0,krls,kecs,Nsdp):
+        kqs=[kq0+np.dot(np.array([sgn0,sgn1]),krls) for sgn0 in [-1,0,1] for sgn1 in [-1,0,1]]
+        return kqs[np.argwhere(np.array([bz.inbz(kq,kecs,Nsdp,bzop=True) for kq in kqs]))[0,0]]
+    # Get the list of chipm*k+q for k in ks and q in qs.
+    kqids=np.array([[np.argwhere(np.array([np.linalg.norm(kq-kt)<1e-14 for kq in [moveinbz(chipm*k+q,krls,kecs,Nsdp)] for kt in ks]))[0,0] for k in ks] for q in qs])
+    t1=time.time()
+    print('Time for momentum pair =',t1-t0)
+    return kqids
+
+
+def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
+    if(otype=='c' or otype=='s' or otype=='o'):
+        Pt=P
+        if(tobdg):Pt=bdg.bdgblock(P,0,0)
+        kpm=1
+    elif(otype=='fe' or otype=='fo'):
+        Pt=bdg.bdgblock(P,1,0)
+        kpm=-1
+    kqids=momentumpairs(ks,[q],ltype,[1,1,1],kpm)
+    if(otype=='c'):orep=np.identity(Nfl)
+    elif(otype=='s'):orep=tb.paulimat(3)
+    elif(otype=='fe'):
+        if(Nfl==1):orep=np.identity(1)
+        elif(Nfl==2):orep=(tb.paulimat(0)+tb.paulimat(3))/2.
+    elif(otype=='fo'):orep=1.j*tb.paulimat(2)
+    Nk=len(ks)
+    stidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),kid] for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)]).T
+    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
+    FT=sparse.COO(stidss,fts,shape=(tb.statenum([len(rs),Nfl]),tb.statenum([len(rs),Nfl]),len(ks)))
+    if(tori=='r'):
+        print('Print real order.')
+        oks=sparse.tensordot(FT,Pt,axes=((0,1),(0,1)),return_type=np.ndarray).real.tolist()
+    elif(tori=='i'):
+        print('Print imaginary order.')
+        oks=sparse.tensordot(FT,Pt,axes=((0,1),(0,1)),return_type=np.ndarray).imag.tolist()
+    return oks
+
+
 
 
 

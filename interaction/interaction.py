@@ -21,7 +21,7 @@ import tightbinding as tb
 
 
 
-def interaction(NB,Nrfl,us,utype='hu',RD=np.array([]),ldar=0.2,rob=1.,jhes=[0.]):
+def interaction(NB,Nrfl,us,utype='hu',RD=np.array([]),ldar=0.2,rob=1.,jhes=[0.],jcps=[1,2,3]):
     '''
     Interaction: Define the sparse rank-4 tensor for the interaction.
     Return: A sparse rank-4 tensor UINT of the interaction.
@@ -40,7 +40,7 @@ def interaction(NB,Nrfl,us,utype='hu',RD=np.array([]),ldar=0.2,rob=1.,jhes=[0.])
     UINT=sparse.COO(stids,uints,shape=(Nst,Nst,Nst,Nst))
     # Heisenberg exchange.
     if(np.max(np.abs(jhes))>1e-12):
-        stids,uints=heisenberg(NB,Nrfl,jhes)
+        stids,uints=heisenberg(NB,Nrfl,jhes,jcps=jcps)
         UINT=UINT+sparse.COO(stids,uints,shape=(Nst,Nst,Nst,Nst))
     return UINT
 
@@ -77,7 +77,7 @@ def dendenint(NB,Nrfl,us,utype,RD,ldar,rob):
     return stids,uints
 
 
-def heisenberg(NB,Nrfl,jhes):
+def heisenberg(NB,Nrfl,jhes,jcps=[1,2,3]):
     '''
     Heisenberg exchange: Define the Heisenberg exchange.
     Return: State ids stids and values uints of nonzero elements in the sparse rank-4 interaction tensor.
@@ -85,13 +85,14 @@ def heisenberg(NB,Nrfl,jhes):
     Nrfl=[Nr,Nfl]: [site number, flavor number].
     jhes: Heisenberg exchange couplings [jhe0,jhe1,jhe2,....].
     '''
-    print('Heisenberg exchange: [Jhe0,Jhe1,Jhe2,....] =',jhes)
+    print('Heisenberg exchange: [Jhe0,Jhe1,Jhe2,....] =',jhes,', components =',jcps)
     # List the pairs of sites relevant to interactions, with the interactions assigned by neighboring distances.
     pairs=[pair for nb in range(len(jhes)) for pair in ltc.nthneighbors(nb,NB)]
     upairs=[jhes[NB[pair[0],pair[1]]] for pair in pairs]
     # Construct the state ids stids and values uints of nonzero elements in the sparse rank-4 interaction tensor.
     stids=np.array([[tb.stateid(pair[0],fl0,Nrfl[1]),tb.stateid(pair[1],fl2,Nrfl[1]),tb.stateid(pair[1],fl3,Nrfl[1]),tb.stateid(pair[0],fl1,Nrfl[1])] for pair in pairs for fl0 in range(Nrfl[1]) for fl1 in range(Nrfl[1]) for fl2 in range(Nrfl[1]) for fl3 in range(Nrfl[1])]).T.tolist()
-    uints=[(upairs[npr]/4.)*(sum([tb.paulimat(n)[fl0,fl1]*tb.paulimat(n)[fl2,fl3] for n in [1,2,3]])-(fl0==fl1)*(fl2==fl3)) for npr in range(len(pairs)) for fl0 in range(Nrfl[1]) for fl1 in range(Nrfl[1]) for fl2 in range(Nrfl[1]) for fl3 in range(Nrfl[1])]
+    uints=[(upairs[npr]/4.)*sum([tb.paulimat(jcp)[fl0,fl1]*tb.paulimat(jcp)[fl2,fl3] for jcp in jcps]) for npr in range(len(pairs)) for fl0 in range(Nrfl[1]) for fl1 in range(Nrfl[1]) for fl2 in range(Nrfl[1]) for fl3 in range(Nrfl[1])]
+#    uints=[(upairs[npr]/4.)*(sum([tb.paulimat(comp)[fl0,fl1]*tb.paulimat(comp)[fl2,fl3] for comp in comps])-(fl0==fl1)*(fl2==fl3)) for npr in range(len(pairs)) for fl0 in range(Nrfl[1]) for fl1 in range(Nrfl[1]) for fl2 in range(Nrfl[1]) for fl3 in range(Nrfl[1])]
     return stids,uints
 
 

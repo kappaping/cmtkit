@@ -168,7 +168,7 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,
     print('site order max = ',chs[1][0],', site order average = ',sum(chs[0][0])/len(chs[0][0]))
     print('real bond order max = ',chs[1][1],', real bond order average = ',sum(chs[0][1])/len(chs[0][1]))
     print('imaginary bond order max = ',chs[1][2],', imaginary bond order average = ',sum(chs[0][2])/len(chs[0][2]))
-    odss=[chs]
+    odsss=[[chs]]
     # If the flavor number > 1: Compute the spin orders.
     if(Nrfl[1]>1):
         sps=dm.spinorder(P,nb1ids,Nrfl,tobdg)
@@ -176,7 +176,7 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,
         print('site order max = ',sps[1][0],', site order average = ',sum(sps[0][0])/len(sps[0][0]))
         print('real bond order max = ',sps[1][1],', real bond order average = ',sum(sps[0][1])/len(sps[0][1]))
         print('imaginary bond order max = ',sps[1][2],', imaginary bond order average = ',sum(sps[0][2])/len(sps[0][2]))
-        odss+=[sps]
+        odsss[0]+=[sps]
     # If the flavor number > 2: Compute the orbital orders.
     if(Nrfl[1]>2):
         ors=dm.orbitalorder(P,nb1ids,Nrfl,tobdg)
@@ -184,7 +184,7 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,
         print('site order max = ',ors[1][0],', site order average = ',sum(ors[0][0])/len(ors[0][0]))
         print('real bond order max = ',ors[1][1],', real bond order average = ',sum(ors[0][1])/len(ors[0][1]))
         print('imaginary bond order max = ',ors[1][2],', imaginary bond order average = ',sum(ors[0][2])/len(ors[0][2]))
-#        odss[0]+=[ors]
+        odsss[0]+=[ors]
     # Compute the pairing orders.
     if(tobdg):
         # Compute the flavor-even orders.
@@ -193,7 +193,7 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,
         print('site order max = ',feps[1][0],', site order average = ',sum(feps[0][0])/len(feps[0][0]))
         print('real bond order max = ',feps[1][1],', real bond order average = ',sum(feps[0][1])/len(feps[0][1]))
         print('imaginary bond order max = ',feps[1][2],', imaginary bond order average = ',sum(feps[0][2])/len(feps[0][2]))
-        odss+=[feps]
+        odsss+=[[feps]]
         # If the flavor number > 1: Compute the flavor-odd orders.
         if(Nrfl[1]>1):
             fops=bdg.flavoroddpairingorder(P,nb1ids,Nrfl)
@@ -201,42 +201,44 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,
             print('site order max = ',fops[1][0],', site order average = ',sum(fops[0][0])/len(fops[0][0]))
             print('real bond order max = ',fops[1][1],', real bond order average = ',sum(fops[0][1])/len(fops[0][1]))
             print('imaginary bond order max = ',fops[1][2],', imaginary bond order average = ',sum(fops[0][2])/len(fops[0][2]))
-            odss+=[fops]
+            odsss[1]+=[fops]
     # Rescale the orders.
-    odssr=rescaledorder(odss,scl)
+    odsssr=rescaledorder(odsss,scl)
     # Extract the orders to plot.
     if(len(rpls)==0):rpls=rs
     rplids=[ltc.siteid(rpl,rs) for rpl in rpls]
-    odsspl=[[[],[],[]] for n in range(len(odssr))]
-    for m in range(len(odsspl)):
-        odsspl[m][0]=[odssr[m][0][rplid] for rplid in rplids]
+    odssspl=[[[[],[],[]] for os in oss] for oss in odsss]
+    for m0 in range(len(odssspl)):
+        for m1 in range(len(odssspl[m0])):
+            odssspl[m0][m1][0]=[odsssr[m0][m1][0][rplid] for rplid in rplids]
     nbplids=[]
     for nb in range(len(nb1ids)):
         if(nb1ids[nb][0] in rplids):
             nbplids+=[nb1ids[nb]]
-            for m in range(len(odsspl)):
-                odsspl[m][1]+=[odssr[m][1][nb]]
-                odsspl[m][2]+=[odssr[m][2][nb]]
+            for m0 in range(len(odssspl)):
+                for m1 in range(len(odssspl[m0])):
+                    odssspl[m0][m1][1]+=[odsssr[m0][m1][1][nb]]
+                    odssspl[m0][m1][2]+=[odsssr[m0][m1][2][nb]]
     # Plot the charge orders.
-    plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0],'c',odsspl[0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][0],'c',odssspl[0][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
     # If the flavor number > 1: Plot the spin orders.
-    if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1],'s',odsspl[1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][1],'s',odssspl[0][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
     # If the flavor number > 2: Plot the orbital orders.
-#    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'s',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][2],'s',odssspl[0][2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
     # Plot the pairing orders.
     if(tobdg):
         # Plot the flavor-even pairing orders.
-        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[2],'fe',odsspl[2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][0],'fe',odssspl[1][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
         # If the flavor number > 2: Plot the flavor-odd pairing orders.
-        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[3],'fo',odsspl[3],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][1],'fo',odssspl[1][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
 
 
-def rescaledorder(oss,scl):
+def rescaledorder(osss,scl):
     '''
     Rescale the orders for the plotting.
     '''
-    omax=np.amax(np.array([os[1] for os in oss]))
-    return [[scl*np.array(os[0][n])/omax for n in range(3)] for os in oss]
+    omax=np.amax(np.array([[os[1] for os in oss] for oss in osss]))
+    return [[[scl*np.array(os[0][n])/omax for n in range(3)] for os in oss] for oss in osss]
 
 
 def printcbar(filet,cmap='coolwarm'):

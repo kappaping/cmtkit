@@ -174,7 +174,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
     plt.show()
 
 
-def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,bzvol=1.,tolabel=False,tosave=False,filetfig=''):
+def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclmax=False,bzvol=1.,tolabel=False,tosave=False,filetfig=''):
     '''
     Draw the Brillouin zone.
     '''
@@ -212,7 +212,8 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,bzvol
         if(len(data)==0):data=len(ks)*[0.]
         if(ptype=='pt'):
             k0s,k1s,k2s=np.array(ks).T
-            camax=max(np.max(np.abs(np.array(data))),1./bzvol)
+            if(toclmax):camax=np.max(np.abs(np.array(data)))
+            else:camax=max(np.max(np.abs(np.array(data))),1./bzvol)
             plt.scatter(k0s,k1s,s=40.,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
         elif(ptype=='gd'):
             kctss=[bz.gridcorners(k,dks) for k in ks]
@@ -237,7 +238,8 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,bzvol
                     kctss[nkcts]=kctst
             kctss=[np.array(kcts)[:,0:2] for kcts in kctss]
             cmap=matplotlib.cm.get_cmap('coolwarm')
-            camax=max(np.max(np.abs(np.array(data))),1./bzvol)
+            if(toclmax):camax=np.max(np.abs(np.array(data)))
+            else:camax=max(np.max(np.abs(np.array(data))),1./bzvol)
             norm=matplotlib.colors.Normalize(vmin=-camax,vmax=camax)
             cs=[cmap(norm(data[nk])) for nk in range(len(ks))]
             for nk in range(len(ks)):

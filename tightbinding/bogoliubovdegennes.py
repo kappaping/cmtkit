@@ -53,7 +53,8 @@ def pairpairing(P,rid0,rid1,Nfl):
     '''
     Get the pairings of a pair of lattice sites with indices rid0 and rid1.
     '''
-    return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.dot((1./sqrt(2.))*tb.paulimat(n),1.j*tb.paulimat(2)).conj().T)) for n in [0,1,2,3]])
+    if(Nfl==1):return np.array([0.,0.,0.,np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1))])
+    elif(Nfl==2):return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.dot((1./sqrt(2.))*tb.paulimat(n),1.j*tb.paulimat(2)).conj().T)) for n in [0,1,2,3]])
 
 
 def flavoroddpairingorder(P,nb1ids,Nrfl):
