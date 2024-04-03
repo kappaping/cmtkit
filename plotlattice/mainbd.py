@@ -17,20 +17,20 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='tr'
-Nbl=[8,8,1]
+ltype='ka'
+Nbl=[4,4,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
 NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
 # Flavor and state.
-Nfl=2
+Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=3./4.-1./16.
+nf=1./3.*(1.+(6./12.))
 
 # Tight-binding Hamiltonian.
-ts=[0.,-1.,0.2]
+ts=[0.,-1.,0.]
 H=tb.tbham(ts,NB,Nfl)
 
 # Set the unit cell with periodicity prds.

@@ -14,12 +14,14 @@ ltype='ka'
 Nbl=[12,12,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
-NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+filet='../../data/lattice/kagome/12121_bc_1'
+#filet='../../data/lattice/pyrochlore/444_bc_1'
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=True,filet=filet)
 # Flavor and state.
-Nfl=2
+Nfl=1
 Nrfl=[Nr,Nfl]
 # Filling fraction of each state.
-nf=1./2.
+nf=1./3.*(0.+(6./12.))
 # Whether to adopt the Bogoliubov-de Gennes form.
 tobdg=False
 

@@ -176,6 +176,7 @@ def plotenergy(H,Nrfl,nf,toprint=False,filetfig='',tobdg=False):
     elif(tobdg):
         Noc=Nst
         Nst*=2
+    print('Chemical potential mu =',ees[Noc-1])
     plt.rcParams.update({'font.size':30})
     cs=Noc*['g']+(Nst-Noc)*['b']
     plt.scatter(range(len(ees)),ees,c=cs)
