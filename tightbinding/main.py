@@ -21,7 +21,7 @@ NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=True,filet=filet)
 Nfl=1
 Nrfl=[Nr,Nfl]
 # Filling fraction of each state.
-nf=1./3.*(0.+(6./12.))
+nf=1./3.*(1.+(-1./12.))
 # Whether to adopt the Bogoliubov-de Gennes form.
 tobdg=False
 

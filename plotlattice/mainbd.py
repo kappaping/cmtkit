@@ -27,7 +27,7 @@ Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=1./3.*(1.+(6./12.))
+nf=1./3.*(1.+(-1./12.))
 
 # Tight-binding Hamiltonian.
 ts=[0.,-1.,0.]
