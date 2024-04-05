@@ -319,7 +319,8 @@ def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
     elif(otype=='fo'):orep=1.j*tb.paulimat(2)
     Nk=len(ks)
     stidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),kid] for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)]).T
-    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
+#    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
+    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-ltc.slvecs(ltype)[rs[rid0][1]])+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-ltc.slvecs(ltype)[rs[rid1][1]])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
     FT=sparse.COO(stidss,fts,shape=(tb.statenum([len(rs),Nfl]),tb.statenum([len(rs),Nfl]),len(ks)))
     if(tori=='r'):
         print('Print real order.')
