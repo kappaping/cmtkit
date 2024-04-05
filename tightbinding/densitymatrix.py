@@ -310,7 +310,7 @@ def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
     elif(otype=='fe' or otype=='fo'):
         Pt=bdg.bdgblock(P,1,0)
         kpm=-1
-    kqids=momentumpairs(ks,[q],ltype,[1,1,1],kpm)
+#    kqids=momentumpairs(ks,[q],ltype,[1,1,1],kpm)
     if(otype=='c'):orep=np.identity(Nfl)
     elif(otype=='s'):orep=tb.paulimat(3)
     elif(otype=='fe'):
@@ -320,7 +320,8 @@ def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
     Nk=len(ks)
     stidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),kid] for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)]).T
 #    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
-    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-ltc.slvecs(ltype)[rs[rid0][1]])+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-ltc.slvecs(ltype)[rs[rid1][1]])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
+#    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-ltc.slvecs(ltype)[rs[rid0][1]])+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-ltc.slvecs(ltype)[rs[rid1][1]])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
+    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(kpm*ks[kid]+q,ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
     FT=sparse.COO(stidss,fts,shape=(tb.statenum([len(rs),Nfl]),tb.statenum([len(rs),Nfl]),len(ks)))
     if(tori=='r'):
         print('Print real order.')
