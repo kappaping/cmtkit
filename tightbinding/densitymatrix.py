@@ -96,8 +96,10 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=
         elif(ltype=='ka'):dmka.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
     if(toptb):
         print('Perturb the density matrix at scale =',ptb)
-        if(tobdg==False):P=(1.-ptb)*P+ptb*projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
-        elif(tobdg):P=(1.-ptb)*P+ptb*projdenmat(unitary_group.rvs(2*Nst),0,Nst,2*Nst)
+        ptbr=ptb*np.max(np.abs(P))
+        print('Perturbation rate =',ptbr)
+        if(tobdg==False):P=(1.-ptbr)*P+ptbr*projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
+        elif(tobdg):P=(1.-ptbr)*P+ptbr*projdenmat(unitary_group.rvs(2*Nst),0,Nst,2*Nst)
     if(toflrot):
         print('Rotate the flavors of the density matrix')
         P=flrot(P,Nrfl,Ufl,tobdg)
@@ -302,7 +304,7 @@ def momentumpairs(ks,qs,ltype,prds,chipm):
     return kqids
 
 
-def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
+def formfactor(P,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False):
     if(otype=='c' or otype=='s' or otype=='o'):
         Pt=P
         if(tobdg):Pt=bdg.bdgblock(P,0,0)
@@ -310,7 +312,8 @@ def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
     elif(otype=='fe' or otype=='fo'):
         Pt=bdg.bdgblock(P,1,0)
         kpm=-1
-#    kqids=momentumpairs(ks,[q],ltype,[1,1,1],kpm)
+    kqids=momentumpairs(ks,[q],ltype,[1,1,1],kpm)
+    [Nr,Nfl]=Nrfl
     if(otype=='c'):orep=np.identity(Nfl)
     elif(otype=='s'):orep=tb.paulimat(3)
     elif(otype=='fe'):
@@ -318,17 +321,24 @@ def formfactor(P,ltype,rs,RDV,Nfl,ks,q,otype,tori='r',tobdg=False):
         elif(Nfl==2):orep=(tb.paulimat(0)+tb.paulimat(3))/2.
     elif(otype=='fo'):orep=1.j*tb.paulimat(2)
     Nk=len(ks)
-    stidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),kid] for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)]).T
-#    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
-#    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-ltc.slvecs(ltype)[rs[rid0][1]])+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-ltc.slvecs(ltype)[rs[rid1][1]])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
-    fts=np.array([orep[fl0,fl1]*(1./Nk)*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(kpm*ks[kid]+q,ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(len(rs)) for fl0 in range(Nfl) for rid1 in range(len(rs)) for fl1 in range(Nfl) for kid in range(Nk)])
-    FT=sparse.COO(stidss,fts,shape=(tb.statenum([len(rs),Nfl]),tb.statenum([len(rs),Nfl]),len(ks)))
+    def fourierdenmat(kid):
+        print(kid)
+        ftidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),tb.stateid(rs[rid0][1],fl0,Nfl),tb.stateid(rs[rid1][1],fl1,Nfl)] for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)]).T
+#        fts=np.array([orep[fl0,fl1]*(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid]+q/2,ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(kpm*(ks[kid]+q/2)+q,ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
+        fts=np.array([orep[fl0,fl1]*(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
+        return sparse.COO(ftidss,fts,shape=(tb.statenum(Nrfl),tb.statenum(Nrfl),tb.statenum([ltc.slnum(ltype),Nfl]),tb.statenum([ltc.slnum(ltype),Nfl])))
+    Oks=np.array([sparse.tensordot(fourierdenmat(kid),Pt,axes=((0,1),(0,1)),return_type=np.ndarray) for kid in range(Nk)])
+    oks=[np.linalg.svd(Ok) for Ok in Oks]
+    oks=[[ok[0].round(10),ok[1].round(10),ok[2].round(10)] for ok in oks]
+    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
+    oks=np.array([np.linalg.svd(Ok)[1] for Ok in Oks])
+    oks=np.array([ok[0] for ok in oks])
     if(tori=='r'):
         print('Print real order.')
-        oks=sparse.tensordot(FT,Pt,axes=((0,1),(0,1)),return_type=np.ndarray).real.tolist()
+        oks=oks.real.tolist()
     elif(tori=='i'):
         print('Print imaginary order.')
-        oks=sparse.tensordot(FT,Pt,axes=((0,1),(0,1)),return_type=np.ndarray).imag.tolist()
+        oks=oks.imag.tolist()
     return oks
 
 

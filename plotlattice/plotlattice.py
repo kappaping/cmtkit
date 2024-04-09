@@ -77,7 +77,7 @@ def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
     elif(otype=='c'):os=[np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os[0]]),np.array([(abs(ch)**0.4)*np.sign(ch) for ch in os[1]])]
     elif(otype=='s'):os=[np.array([(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0]]),np.array([(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1]])]
     elif(otype=='fo'):os=[np.array([(abs(fo)**0.75)*np.sign(fo) for fo in os[0] for n in range(2)]),np.array([(abs(fo)**0.4)*np.sign(fo) for fo in os[1] for n in range(2)])]
-    elif(otype=='fe'):os=[np.array([sgn*(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0] for sgn in [1,-1]]),np.array([sgn*(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1] for sgn in [1,-1]])]
+    elif(otype=='fe'):os=[np.array([sgn*(np.linalg.norm(fe)**0.75)*np.sign(fe[2]) for fe in os[0] for sgn in [1,-1]]),np.array([sgn*(np.linalg.norm(fe)**0.4)*np.sign(fe[2]) for fe in os[1] for sgn in [1,-1]])]
     bmps=[(b[0]+b[1])/2. for b in bs]    # Middle points of bonds
     bvs=[b[0]-b[1] for b in bs]  # Bond vectors
     # Imaginary
