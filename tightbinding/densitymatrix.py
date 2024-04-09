@@ -304,7 +304,7 @@ def momentumpairs(ks,qs,ltype,prds,chipm):
     return kqids
 
 
-def formfactor(P,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False):
+def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False):
     if(otype=='c' or otype=='s' or otype=='o'):
         Pt=P
         if(tobdg):Pt=bdg.bdgblock(P,0,0)
@@ -328,11 +328,16 @@ def formfactor(P,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False):
         fts=np.array([orep[fl0,fl1]*(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
         return sparse.COO(ftidss,fts,shape=(tb.statenum(Nrfl),tb.statenum(Nrfl),tb.statenum([ltc.slnum(ltype),Nfl]),tb.statenum([ltc.slnum(ltype),Nfl])))
     Oks=np.array([sparse.tensordot(fourierdenmat(kid),Pt,axes=((0,1),(0,1)),return_type=np.ndarray) for kid in range(Nk)])
-    oks=[np.linalg.svd(Ok) for Ok in Oks]
-    oks=[[ok[0].round(10),ok[1].round(10),ok[2].round(10)] for ok in oks]
-    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
-    oks=np.array([np.linalg.svd(Ok)[1] for Ok in Oks])
-    oks=np.array([ok[0] for ok in oks])
+    Uees=[np.linalg.eigh(Hk(k))[1] for k in ks]
+    if(otype=='c' or otype=='s'):Oks=np.array([np.linalg.multi_dot([Uees[kid].conj().T,Oks[kid],Uees[kqids[0,kid]]]).round(12) for kid in range(Nk)])
+    elif(otype=='fe' or otype=='fo'):Oks=np.array([np.linalg.multi_dot([Uees[kid].conj().T,Oks[kid],Uees[kqids[0,kid]].conj()]).round(12) for kid in range(Nk)])
+    for kid in range(Nk):print('k =',ks[kid],', Ok =\n',Oks[kid])
+#    oks=[np.linalg.svd(Ok) for Ok in Oks]
+#    oks=[[ok[0].round(10),ok[1].round(10),ok[2].round(10)] for ok in oks]
+#    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
+#    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
+#    oks=np.array([np.linalg.svd(Ok)[1] for Ok in Oks])
+    oks=np.array([Ok[2,2] for Ok in Oks])
     if(tori=='r'):
         print('Print real order.')
         oks=oks.real.tolist()
