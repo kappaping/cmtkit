@@ -159,6 +159,7 @@ def ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=''):
     '''
     # Read from the file filet.
     if(toread==True):
+        print('Read the neighbors from:',filet)
         [bc,NB,RD,RDV]=joblib.load(filet)
     else:
         # Compute all of the pair distances on the lattice.

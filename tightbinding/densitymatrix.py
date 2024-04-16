@@ -34,7 +34,7 @@ def projdenmat(U,n0,n1,Nst):
     return np.round(np.linalg.multi_dot([U,D,UT]),25)
 
 
-def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=np.array([]),Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
+def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=np.array([]),nbcpmax=-1,Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
     '''
     Set up a density matrix.
     Return: A density matrix.
@@ -84,7 +84,7 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=
     # Copy the density matrix from the one in file fileti with size Nbli under periodic boundary condition.
     elif(Ptype=='copy'):
         print('Copy the density matrix with system size',Nbli,'from:', fileti)
-        P=denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli,tobdg)
+        P=denmatcopy(ltype,rs,Nrfl,Nbl,NB,nbcpmax,fileti,Nbli,tobdg)
     # Others: The density matrix is assigned by other functions.
     else:
         print('Assign the density matrix as:', Ptype)
@@ -107,7 +107,7 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=
     return P
 
 
-def denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli,tobdg=False):
+def denmatcopy(ltype,rs,Nrfl,Nbl,NB,nbcpmax,fileti,Nbli,tobdg=False):
     '''
     Density matrix copy: Copy the density matrix from the one in file fileti with size Nbli under periodic boundary condition.
     Return: A density matrix with size Nrfl.
@@ -131,11 +131,20 @@ def denmatcopy(ltype,rs,Nrfl,Nbl,NB,fileti,Nbli,tobdg=False):
     # Read the initial density matrix.
     if(tobdg==False):Pi=joblib.load(fileti)
     elif(tobdg):Pi=joblib.load(fileti)[0]
+    if(nbcpmax==-1):
+        if(max(Nbl)<=max(Nbli)):
+            nbcpmax=round(np.max(NB))
+            print('Copy all neighbors up to the',nbcpmax,'-th neighbors.')
+        elif(max(Nbl)>max(Nbli)):
+            nbcpmax=2
+            print('Copy the neighbors up to the',nbcpmax,'-th neighbors.')
+    else:
+        print('Copy the neighbors up to the',nbcpmax,'-th neighbors.')
     # Duplicate the matrix elements.
     for rid0 in range(Nrfl[0]):
         for rid1 in range(Nrfl[0]):
             # Keep only up to second-neighbor terms.
-            if(NB[rid0,rid1]<=2):
+            if(NB[rid0,rid1]<=nbcpmax):
                 # Find out the shortest-distance equivalent site r1dm of r1 from r0.
                 r1dm=ltc.pairdist(ltype,rs[rid0],rs[rid1],True,nptrs)[1][0]
                 # Find out the id of r1dm in the initial lattice ris.
@@ -272,7 +281,7 @@ def orbitalorder(P,nb1ids,Nrfl,tobdg=False):
 '''Fourier transform'''
 
 
-def momentumpairs(ks,qs,ltype,prds,chipm):
+def momentumpairs(ks,bzop,qs,ltype,prds,chipm):
     '''
     Given the momenta ks and transfer momenta qs, list the momenta chipm*k+q for k in ks.
     Return: A matrix of ids of chipm*k=q.
@@ -295,8 +304,8 @@ def momentumpairs(ks,qs,ltype,prds,chipm):
     Nk=len(ks)
     # Define the function which moves chipm*k+q into the Brillouin zone.
     def moveinbz(kq0,krls,kecs,Nsdp):
-        kqs=[kq0+np.dot(np.array([sgn0,sgn1]),krls) for sgn0 in [-1,0,1] for sgn1 in [-1,0,1]]
-        return kqs[np.argwhere(np.array([bz.inbz(kq,kecs,Nsdp,bzop=True) for kq in kqs]))[0,0]]
+        kqs=[kq0+np.dot(np.array([sgn0,sgn1]),krls) for sgn0 in [0,-1,1] for sgn1 in [0,-1,1]]
+        return kqs[np.argwhere(np.array([bz.inbz(kq,kecs,Nsdp,bzop=bzop) for kq in kqs]))[0,0]]
     # Get the list of chipm*k+q for k in ks and q in qs.
     kqids=np.array([[np.argwhere(np.array([np.linalg.norm(kq-kt)<1e-14 for kq in [moveinbz(chipm*k+q,krls,kecs,Nsdp)] for kt in ks]))[0,0] for k in ks] for q in qs])
     t1=time.time()
@@ -304,15 +313,42 @@ def momentumpairs(ks,qs,ltype,prds,chipm):
     return kqids
 
 
-def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False):
+def symmeigenstates(Hk,ks,knkids,Nfl):
+    print('Symmetrize the eigenstates under time-reversal symmetry.')
+    Uees=[]
+    def degeneracy(ees):
+        dgns=[]
+        for ee0 in ees:
+            dgn=0
+            for ee1 in ees:
+                if(abs(ee0-ee1)<1e-14):dgn+=1
+            dgns=dgns+[dgn]
+        return max(dgns)
+    for k in ks:
+        ees,Uee=np.linalg.eigh(Hk(k))
+        if(degeneracy(ees)>Nfl):
+            if(np.linalg.norm(k)<1e-14):k=k+np.array([1e-5,0.,0.])
+            else:kt=(1.-1e-5)*k
+            ees,Uee=np.linalg.eigh(Hk(kt))
+        Uees=Uees+[Uee]
+    def timereversal(Uee):
+        Ueet=Uee.conj()
+        if(Nfl==2):Ueet=np.dot(np.tensordot(np.identity(ltc.slnum(ltype)),1.j*tb.paulimat(2),axes=0),Ueet)
+        return Ueet
+    for kid in range(len(ks)):
+        Uees[knkids[kid]]=timereversal(Uees[kid])
+    return Uees
+
+
+def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,bzop,q,otype,nbds=[0,0],nbp=-1,tori='r',tobdg=False):
     if(otype=='c' or otype=='s' or otype=='o'):
         Pt=P
         if(tobdg):Pt=bdg.bdgblock(P,0,0)
         kpm=1
     elif(otype=='fe' or otype=='fo'):
-        Pt=bdg.bdgblock(P,1,0)
+        Pt=bdg.bdgblock(P,0,1)
         kpm=-1
-    kqids=momentumpairs(ks,[q],ltype,[1,1,1],kpm)
+    kqids=momentumpairs(ks,bzop,[q],ltype,[1,1,1],kpm)
     [Nr,Nfl]=Nrfl
     if(otype=='c'):orep=np.identity(Nfl)
     elif(otype=='s'):orep=tb.paulimat(3)
@@ -328,7 +364,8 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False)
         fts=np.array([orep[fl0,fl1]*(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
         return sparse.COO(ftidss,fts,shape=(tb.statenum(Nrfl),tb.statenum(Nrfl),tb.statenum([ltc.slnum(ltype),Nfl]),tb.statenum([ltc.slnum(ltype),Nfl])))
     Oks=np.array([sparse.tensordot(fourierdenmat(kid),Pt,axes=((0,1),(0,1)),return_type=np.ndarray) for kid in range(Nk)])
-    Uees=[np.linalg.eigh(Hk(k))[1] for k in ks]
+    if((otype=='fe' or otype=='fo') and np.linalg.norm(q)<1e-14):Uees=symmeigenstates(Hk,ks,kqids[0],Nfl)
+    else:Uees=[np.linalg.eigh(Hk(k))[1] for k in ks]
     if(otype=='c' or otype=='s'):Oks=np.array([np.linalg.multi_dot([Uees[kid].conj().T,Oks[kid],Uees[kqids[0,kid]]]).round(12) for kid in range(Nk)])
     elif(otype=='fe' or otype=='fo'):Oks=np.array([np.linalg.multi_dot([Uees[kid].conj().T,Oks[kid],Uees[kqids[0,kid]].conj()]).round(12) for kid in range(Nk)])
     for kid in range(Nk):print('k =',ks[kid],', Ok =\n',Oks[kid])
@@ -337,7 +374,7 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,q,otype,nbp=-1,tori='r',tobdg=False)
 #    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
 #    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
 #    oks=np.array([np.linalg.svd(Ok)[1] for Ok in Oks])
-    oks=np.array([Ok[2,2] for Ok in Oks])
+    oks=np.array([Ok[nbds[0],nbds[1]] for Ok in Oks])
     if(tori=='r'):
         print('Print real order.')
         oks=oks.real.tolist()
