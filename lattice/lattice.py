@@ -8,6 +8,7 @@ import time
 import joblib
 
 import square
+import checkerboard
 import triangular
 import honeycomb
 import kagome
@@ -24,6 +25,7 @@ def ltcname(ltype):
     Lattice name
     '''
     if(ltype=='sq'):return square.ltcname()
+    elif(ltype=='ch'):return checkerboard.ltcname()
     elif(ltype=='tr'):return triangular.ltcname()
     elif(ltype=='ho'):return honeycomb.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
@@ -35,6 +37,7 @@ def blvecs(ltype):
     Bravais lattice vectors
     '''
     if(ltype=='sq'):return square.blvecs()
+    elif(ltype=='ch'):return checkerboard.blvecs()
     elif(ltype=='tr'):return triangular.blvecs()
     elif(ltype=='ho'):return honeycomb.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
@@ -46,6 +49,7 @@ def slvecs(ltype):
     Sublattice vectors
     '''
     if(ltype=='sq'):return square.slvecs()
+    elif(ltype=='ch'):return checkerboard.slvecs()
     elif(ltype=='tr'):return triangular.slvecs()
     elif(ltype=='ho'):return honeycomb.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()

@@ -55,6 +55,12 @@ def pairpairing(P,rid0,rid1,Nfl):
     '''
     if(Nfl==1):return np.array([0.,0.,0.,np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1))])
     elif(Nfl==2):return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.dot((1./sqrt(2.))*tb.paulimat(n),1.j*tb.paulimat(2)).conj().T)) for n in [0,1,2,3]])
+    elif(Nfl==4):
+        somatsfo=np.array([tb.somat(0,n) for n in [1,2,3]]+[tb.somat(n,0) for n in [1,2,3]])
+        somatsfe=np.array([tb.somat(0,0)]+[tb.somat(n0,n1) for n0 in [1,2,3] for n1 in [1,2,3]])
+        fofe=[np.tensordot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.moveaxis(np.tensordot((1./2.)*somatsf,-1.j*tb.somat(2,2),(2,0)).conj(),[0,1,2],[0,2,1]),((0,1),(2,1))) for somatsf in [somatsfo,somatsfe]]
+        fofe=[np.linalg.norm(fp)*np.sign(fp[0]) for fp in fofe]
+        return np.array([fofe[0],0.,0.,fofe[1]])
 
 
 def flavoroddpairingorder(P,nb1ids,Nrfl):

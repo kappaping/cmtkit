@@ -237,7 +237,7 @@ def rescaledorder(osss,scl):
     '''
     Rescale the orders for the plotting.
     '''
-    omax=np.amax(np.array([[os[1] for os in oss] for oss in osss]))
+    omax=max([np.max(np.array([os[1] for os in oss])) for oss in osss])
     return [[[scl*np.array(os[0][n])/omax for n in range(3)] for os in oss] for oss in osss]
 
 

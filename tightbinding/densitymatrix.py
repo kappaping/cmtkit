@@ -99,7 +99,13 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=
         ptbr=ptb*np.max(np.abs(P))
         print('Perturbation rate =',ptbr)
         if(tobdg==False):P=(1.-ptbr)*P+ptbr*projdenmat(unitary_group.rvs(Nst),0,Noc,Nst)
-        elif(tobdg):P=(1.-ptbr)*P+ptbr*projdenmat(unitary_group.rvs(2*Nst),0,Nst,2*Nst)
+        elif(tobdg):
+            P=(1.-ptbr)*P+ptbr*projdenmat(unitary_group.rvs(2*Nst),0,Nst,2*Nst)
+            PBs=[[bdg.bdgblock(P,phid0,phid1) for phid1 in range(2)] for phid0 in range(2)]
+            P00=(PBs[0][0]+(-PBs[1][1].T))/2.
+            P01=(PBs[0][1]+PBs[1][0].conj().T)/2.
+            P01=(P01+(-P01.T))/2.
+            P=np.block([[P00,P01],[P01.conj().T,-P00.T]])
     if(toflrot):
         print('Rotate the flavors of the density matrix')
         P=flrot(P,Nrfl,Ufl,tobdg)
@@ -174,6 +180,7 @@ def flrot(P,Nrfl,Ufl,tobdg):
     '''
     # Initialize a zero density matrix.
     Nst=tb.statenum(Nrfl)
+    if(Nrfl[1]>2):Ufl=np.kron(np.identity(round(Nrfl[1]/2)),Ufl)
     # Add the rotated pair matrices to the density matrix.
     if(tobdg==False):Pt=np.block([[np.linalg.multi_dot([Ufl.conj().T,tb.pairmat(P,rid0,rid1,Nrfl[1]),Ufl]) for rid1 in range(Nrfl[0])] for rid0 in range(Nrfl[0])])
     elif(tobdg):Pt=np.block([[np.block([[np.linalg.multi_dot([Ufl.conj().T,tb.pairmat(P,rid0,rid1,Nrfl[1],tobdg,phid0,phid1),Ufl]) for rid1 in range(Nrfl[0])] for rid0 in range(Nrfl[0])]) for phid1 in range(2)] for phid0 in range(2)])
@@ -313,34 +320,38 @@ def momentumpairs(ks,bzop,qs,ltype,prds,chipm):
     return kqids
 
 
-def symmeigenstates(Hk,ks,knkids,Nfl):
+def symmeigenstates(Hk,ks,q,knkids,Nfl,ltype,otype):
     print('Symmetrize the eigenstates under time-reversal symmetry.')
-    Uees=[]
-    def degeneracy(ees):
+    Uees,dgnms=[],[]
+    def degeneracy(ees,mm):
         dgns=[]
         for ee0 in ees:
             dgn=0
             for ee1 in ees:
                 if(abs(ee0-ee1)<1e-14):dgn+=1
             dgns=dgns+[dgn]
-        return max(dgns)
+        if(mm=='max'):return max(dgns)
+        elif(mm=='min'):return min(dgns)
     for k in ks:
         ees,Uee=np.linalg.eigh(Hk(k))
-        if(degeneracy(ees)>Nfl):
+        if(degeneracy(ees,'max')>Nfl):
             if(np.linalg.norm(k)<1e-14):k=k+np.array([1e-5,0.,0.])
             else:kt=(1.-1e-5)*k
             ees,Uee=np.linalg.eigh(Hk(kt))
         Uees=Uees+[Uee]
+        dgnms=dgnms+[degeneracy(ees,'min')]
+    dgnm=min(dgnms)
+    print('Degeneracy =',dgnm)
     def timereversal(Uee):
         Ueet=Uee.conj()
-        if(Nfl==2):Ueet=np.dot(np.tensordot(np.identity(ltc.slnum(ltype)),1.j*tb.paulimat(2),axes=0),Ueet)
+        if(Nfl==2 and dgnm==1):Ueet=np.dot(np.kron(np.identity(ltc.slnum(ltype)),1.j*tb.paulimat(2)),Ueet)
         return Ueet
-    for kid in range(len(ks)):
-        Uees[knkids[kid]]=timereversal(Uees[kid])
-    return Uees
+    if((otype=='fe' or otype=='fo')):# and np.linalg.norm(q)<1e-14):
+        for kid in range(len(ks)):Uees[knkids[kid]]=timereversal(Uees[kid])
+    return Uees,dgnm
 
 
-def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,bzop,q,otype,nbds=[0,0],nbp=-1,tori='r',tobdg=False):
+def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],nbp=-1,tori='r',tobdg=False):
     if(otype=='c' or otype=='s' or otype=='o'):
         Pt=P
         if(tobdg):Pt=bdg.bdgblock(P,0,0)
@@ -350,37 +361,40 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,ks,bzop,q,otype,nbds=[0,0],nbp=-1,tori=
         kpm=-1
     kqids=momentumpairs(ks,bzop,[q],ltype,[1,1,1],kpm)
     [Nr,Nfl]=Nrfl
-    if(otype=='c'):orep=np.identity(Nfl)
-    elif(otype=='s'):orep=tb.paulimat(3)
-    elif(otype=='fe'):
-        if(Nfl==1):orep=np.identity(1)
-        elif(Nfl==2):orep=(tb.paulimat(0)+tb.paulimat(3))/2.
-    elif(otype=='fo'):orep=1.j*tb.paulimat(2)
     Nk=len(ks)
+    '''
     def fourierdenmat(kid):
         print(kid)
         ftidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),tb.stateid(rs[rid0][1],fl0,Nfl),tb.stateid(rs[rid1][1],fl1,Nfl)] for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)]).T
-#        fts=np.array([orep[fl0,fl1]*(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid]+q/2,ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(kpm*(ks[kid]+q/2)+q,ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
-        fts=np.array([orep[fl0,fl1]*(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
+        fts=np.array([(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
         return sparse.COO(ftidss,fts,shape=(tb.statenum(Nrfl),tb.statenum(Nrfl),tb.statenum([ltc.slnum(ltype),Nfl]),tb.statenum([ltc.slnum(ltype),Nfl])))
     Oks=np.array([sparse.tensordot(fourierdenmat(kid),Pt,axes=((0,1),(0,1)),return_type=np.ndarray) for kid in range(Nk)])
-    if((otype=='fe' or otype=='fo') and np.linalg.norm(q)<1e-14):Uees=symmeigenstates(Hk,ks,kqids[0],Nfl)
-    else:Uees=[np.linalg.eigh(Hk(k))[1] for k in ks]
-    if(otype=='c' or otype=='s'):Oks=np.array([np.linalg.multi_dot([Uees[kid].conj().T,Oks[kid],Uees[kqids[0,kid]]]).round(12) for kid in range(Nk)])
-    elif(otype=='fe' or otype=='fo'):Oks=np.array([np.linalg.multi_dot([Uees[kid].conj().T,Oks[kid],Uees[kqids[0,kid]].conj()]).round(12) for kid in range(Nk)])
-    for kid in range(Nk):print('k =',ks[kid],', Ok =\n',Oks[kid])
-#    oks=[np.linalg.svd(Ok) for Ok in Oks]
-#    oks=[[ok[0].round(10),ok[1].round(10),ok[2].round(10)] for ok in oks]
-#    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
-#    for kid in range(Nk):print('k =',ks[kid],', ok =\n',oks[kid][0],'\n',oks[kid][1],'\n',oks[kid][2])
-#    oks=np.array([np.linalg.svd(Ok)[1] for Ok in Oks])
-    oks=np.array([Ok[nbds[0],nbds[1]] for Ok in Oks])
+    '''
+    Nruc=len(rucs)
+    Oks=[np.array([[sum([Pt[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[ridp[0]],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[ridp[0]],ltype)-RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for kid in range(Nk)]
+    # Eigenstates.
+    Uees,dgnm=symmeigenstates(Hk,ks,q,kqids[0],Nfl,ltype,otype)
+    # Representations.
+    if(otype=='c'):oreps=[np.identity(Nfl)]
+    elif(otype=='s'):oreps=[tb.paulimat(n) for n in [1,2,3]]
+    elif(otype=='fe'):
+        if(Nfl==1 or dgnm==1):oreps=[np.identity(1)]
+        elif(Nfl==2 and dgnm==2):oreps=[np.dot(tb.paulimat(n)/sqrt(2.),1.j*tb.paulimat(2)) for n in [1,2,3]]
+    elif(otype=='fo'):
+        if(Nfl==2 and dgnm==2):oreps=[np.dot(tb.paulimat(0)/sqrt(2.),1.j*tb.paulimat(2))]
+    Oks=[[np.dot(np.kron(np.identity(ltc.slnum(ltype)),orep),Ok) for orep in oreps] for Ok in Oks]
+    if(otype=='c' or otype=='s'):Oks=[[np.linalg.multi_dot([Uees[kid].conj().T,Ok,Uees[kqids[0,kid]]]) for Ok in Oks[kid]] for kid in range(Nk)]
+    elif(otype=='fe' or otype=='fo'):Oks=[[np.linalg.multi_dot([Uees[kid].conj().T,Ok,Uees[kqids[0,kid]].conj()]) for Ok in Oks[kid]] for kid in range(Nk)]
+#    for kid in range(Nk):print('k =',ks[kid],', Ok =\n',Oks[kid])
+    oks=[np.array([np.trace(Ok[nbds[0]*dgnm:(nbds[0]+1)*dgnm,nbds[1]*dgnm:(nbds[1]+1)*dgnm]) for Ok in Oks[kid]]) for kid in range(Nk)]
+    okrs,okis=[ok.real for ok in oks],[ok.imag for ok in oks]
+    okrs,okis=np.array([okr[-1] for okr in okrs]),np.array([oki[-1] for oki in okis])
     if(tori=='r'):
         print('Print real order.')
-        oks=oks.real.tolist()
+        oks=okrs.tolist()
     elif(tori=='i'):
         print('Print imaginary order.')
-        oks=oks.imag.tolist()
+        oks=okis.tolist()
     return oks
 
 

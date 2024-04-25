@@ -15,22 +15,17 @@ import densitymatrix as dm
 
 
 # Lattice structure
-ltype='sq'
-print(ltc.ltcname(ltype))
-Nbl=[4,4,1]
-print('System size = ',Nbl)
-Nsl=ltc.slnum(ltype)
-rs=ltc.ltcsites(Nbl,Nsl)
-Nr=len(rs)
-print('Site number = ',Nr)
-bc=0
+ltype='ch'
+Nbl=[8,8,1]
+rs,Nr=ltc.ltcsites(ltype,Nbl)
+bc=1
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
 
 #filet='../../data/lattice/pyrochlore/888_bc_1'
 filetfig='/home/kappaping/research/figs/testfig.pdf'
 
-NB=ltc.ltcpairdist(ltype,rs,Nbl,bc)[0]
-#[NB,RD]=joblib.load(filet)
+rids=[n for n in range(len(rs))]
 nb1ids=ltc.nthneighbors(1,NB)
-pltc.plotlattice(rs,nb1ids,Nbl,ltype,bc,filetfig,show3d=True)
+pltc.plotlattice(rs,rids,nb1ids,Nbl,ltype,bc,filetfig,show3d=True)
 
 

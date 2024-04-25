@@ -29,12 +29,12 @@ import bandtheory as bdth
 '''Plotting the bands'''
 
 
-def mapfs(H,nf,ltype,prds,Nk,datatype='e',tosetde=False,de=0.):
+def mapfs(H,ks,nf,ltype,prds,Nk,datatype='e',sn=np.array([0.,0.,1.]),tosetde=False,de=0.):
     '''
     Obtain the Fermi surface for a given filling
     '''
-    dataks=[]
-    ks=bz.listbz(ltype,prds,Nk)[0]
+    kps=[]
+    data=[]
     Hks=np.array([H(k) for k in ks])
     ees,us=np.linalg.eigh(Hks)
     us=[u.conj().T for u in us]
@@ -46,11 +46,12 @@ def mapfs(H,nf,ltype,prds,Nk,datatype='e',tosetde=False,de=0.):
             if(abs(ees[nk][n]-mu)<de):
                 if(datatype=='f'):datak=0.5
                 elif(datatype=='s'):
-                    sz=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),tb.paulimat(3))
+                    smat=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),np.tensordot(sn,np.array([tb.paulimat(n) for n in [1,2,3]]),(0,0)))
                     u=us[nk][n]
-                    datak=np.linalg.multi_dot([u,sz,u.conj().T]).real
-                dataks.append([ks[nk][0],ks[nk][1],datak])
-    return dataks
+                    datak=np.linalg.multi_dot([u,smat,u.conj().T]).real
+                kps+=[ks[nk]]
+                data+=[datak]
+    return kps,data
 
 
 def mapband(H,nbd,ltype,prds,Nk,tosetde=False,de=0.):
@@ -66,7 +67,7 @@ def mapband(H,nbd,ltype,prds,Nk,tosetde=False,de=0.):
     return dataks
 
 
-def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',toend=True):
+def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',sn=np.array([0.,0.,1.]),toend=True):
     '''
     Compute the band energies from the Hamiltonian H along a momentum-space line section k1-k2.
     '''
@@ -87,13 +88,13 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',toend=True):
         eescs=eescs.T
         uscs=[usc.conj().T for usc in uscs]
         if(datatype=='s'):
-            sz=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),tb.paulimat(3))
-            datascs=np.array([[np.linalg.multi_dot([u,sz,u.conj().T]).real for u in usc] for usc in uscs]).T
+            smat=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),np.tensordot(sn,np.array([tb.paulimat(n) for n in [1,2,3]]),(0,0)))
+            datascs=np.array([[np.linalg.multi_dot([u,smat,u.conj().T]).real for u in usc] for usc in uscs]).T
             for nk in range(len(kscs)):
                 nb=0
                 ndg=1
                 while nb<len(eescs):
-                    if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-14):
+                    if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-12):
                         dataavg=sum([datascs[nb-n,nk] for n in range(ndg)])/ndg
                         for n in range(ndg):
                             datascs[nb-n,nk]=dataavg
@@ -103,7 +104,7 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',toend=True):
     return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=False,filetfig='',tobdg=False):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,eezm=1.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
@@ -120,6 +121,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
     bands=np.array([[] for n in range(Nbd)])
     # Initial list of all plotted band data.
     datas=np.array([[] for n in range(Nbd)])
+    eemaxs,eemins=[],[]
     # Initial point of plotted momentum.
     k0=0.
     # Initial list of high-symmetry points kts and their labels ktlbs along the plotted contour. These are the ticks of the x axis.
@@ -128,7 +130,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
         # Exclude the end point except in the last segment.
         toend=(nsc==len(hsks)-2)
         # Obtain the momenta and band energies in the section.
-        kscs,eescs,datascs=sectionband(H,mu,hsks[nsc][1],hsks[nsc+1][1],k0,Nk,datatype,toend)
+        kscs,eescs,datascs=sectionband(H,mu,hsks[nsc][1],hsks[nsc+1][1],k0,Nk,datatype,sn,toend)
         # Add the momenta and band energies in the section to the overall lists.
         ks=np.concatenate((ks,kscs),axis=0)
         bands=np.concatenate((bands,eescs),axis=1)
@@ -138,6 +140,9 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
         # Append the end momentum and its label to the list.
         kts+=[k0]
         ktlbs+=[hsks[nsc+1][0]]
+        # Get the maximal and minimal values of the energy.
+        eemaxs=eemaxs+[np.max(eescs)]
+        eemins=eemins+[np.min(eescs)]
     # Determine the colors of the data.
     damax=max(0.001,np.max(abs(datas)))
     cmap=matplotlib.cm.get_cmap('coolwarm')
@@ -165,12 +170,23 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,datatype='e',cttype='s',tosave=Fal
         plt.gca().autoscale()
     # Set the ticks of the x axis as the high-symmetry points.
     [plt.axvline(x=hsk,color='k') for hsk in kts[1:-1]]
+    plt.axhline(y=mu,color='k',linestyle='--')
     plt.xlim(kts[0],kts[-1])
     plt.xticks(ticks=kts,labels=ktlbs)
-    # Set the label of the y axis.
+    # Set the y axis.
     plt.ylabel('$E_k$')
+    # Zoom in.
+    if(abs(eezm-1.)>1e-14):
+        eemax,eemin=max(eemaxs),min(eemins)
+        eediff=max(eemax-mu,mu-eemin)
+        print('Zoom in to the Fermi surface by scale =',eezm)
+        kts0,kts1=kts[zmkts[0]],kts[zmkts[1]]
+        ktsmid,ktsdiff=(kts0+kts1)/2.,(kts1-kts0)/2.
+        plt.xlim(ktsmid-zmktszm[0]*ktsdiff,ktsmid+zmktszm[1]*ktsdiff)
+        plt.ylim(mu-(1./eezm)*eediff,mu+(1./eezm)*eediff)
+        plt.axis('off')
     plt.gcf()
-    if(tosave==True):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
+    if(tosave==True):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0,transparent=True)
     plt.show()
 
 
@@ -254,7 +270,7 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
     ax.set_ylim([-lim,lim])
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
-    if(tosave):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0)
+    if(tosave):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0,transparent=True)
     plt.show()
 
 

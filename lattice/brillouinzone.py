@@ -21,7 +21,7 @@ def typeofbz(ltype,prds):
     Define the type of the Brillouin zone.
     '''
     # Rectangular Brillouin zone.
-    if(ltype=='sq' or (prds[0]>1 and prds[1]==1) or (prds[0]==1 and prds[1]>1)):return 'rc'
+    if((ltype in ['sq','ch']) or (prds[0]>1 and prds[1]==1) or (prds[0]==1 and prds[1]>1)):return 'rc'
     # Hexagonal Brillouin zone.
     elif(ltype in ['tr','ho','ka']):return 'hx'
 
@@ -35,11 +35,11 @@ def ucblvecs(ltype,prds):
     # Bravais lattice vectors of original lattice.
     blvs=ltc.blvecs(ltype)
     # Lattice unrotated and preserves full symmetry
-    if(max(prds)==1 or (max(prds)<20 and (ltype=='sq' or prds[0]==prds[1]))):return [prds[n]*blvs[n] for n in range(3)]
+    if(max(prds)==1 or (max(prds)<20 and ((ltype in ['sq','ch']) or prds[0]==prds[1]))):return [prds[n]*blvs[n] for n in range(3)]
     # sqrt2 x sqrt2 on square lattice
-    elif(ltype=='sq' and max(prds)==22):return [blvs[0]+blvs[1],-blvs[0]+blvs[1],blvs[2]]
+    elif((ltype in ['sq','ch']) and max(prds)==22):return [blvs[0]+blvs[1],-blvs[0]+blvs[1],blvs[2]]
     # n x 1 on lattices with triangular Bravais lattice
-    elif(ltype in ['tr','ho','ka'] and bztype=='rc'):
+    elif((ltype in ['tr','ho','ka']) and bztype=='rc'):
         if(np.argmax(np.array(prds))==0):return [(prds[0]/2.)*(-2*blvs[0]+blvs[1]),blvs[1],blvs[2]]
         elif(np.argmax(np.array(prds))==1):return [(prds[1]/2.)*(-1*blvs[0]+2*blvs[1]),blvs[0],blvs[2]]
     # sqrt3 x sqrt3 on lattices with triangular Bravais lattice
