@@ -346,7 +346,7 @@ def symmeigenstates(Hk,ks,q,knkids,Nfl,ltype,otype):
         Ueet=Uee.conj()
         if(Nfl==2 and dgnm==1):Ueet=np.dot(np.kron(np.identity(ltc.slnum(ltype)),1.j*tb.paulimat(2)),Ueet)
         return Ueet
-    if((otype=='fe' or otype=='fo')):# and np.linalg.norm(q)<1e-14):
+    if((otype=='c' or otype=='fe' or otype=='fo')):# and np.linalg.norm(q)<1e-14):
         for kid in range(len(ks)):Uees[knkids[kid]]=timereversal(Uees[kid])
     return Uees,dgnm
 

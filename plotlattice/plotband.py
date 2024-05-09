@@ -104,7 +104,7 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',sn=np.array([0.,0.,1.]),toend=True
     return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,eezm=1.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
@@ -183,7 +183,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,eezm=1.,zmkts=[0,-1],zmktszm=[1.,1
         kts0,kts1=kts[zmkts[0]],kts[zmkts[1]]
         ktsmid,ktsdiff=(kts0+kts1)/2.,(kts1-kts0)/2.
         plt.xlim(ktsmid-zmktszm[0]*ktsdiff,ktsmid+zmktszm[1]*ktsdiff)
-        plt.ylim(mu-(1./eezm)*eediff,mu+(1./eezm)*eediff)
+        plt.ylim(mu+eezmmid-(1./eezm)*eediff,mu+eezmmid+(1./eezm)*eediff)
         plt.axis('off')
     plt.gcf()
     if(tosave==True):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0,transparent=True)

@@ -11,12 +11,12 @@ import tightbinding as tb
 
 # Lattice structure.
 ltype='ka'
-Nbl=[6,6,1]
+Nbl=[24,24,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
-filet='../../data/lattice/kagome/12121_bc_1'
+filet='../../data/lattice/kagome/24241_bc_1'
 #filet='../../data/lattice/pyrochlore/444_bc_1'
-NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=True,filet=filet)
 # Flavor and state.
 Nfl=1
 Nrfl=[Nr,Nfl]

@@ -15,13 +15,13 @@ import densitymatrix as dm
 
 
 # Lattice structure
-ltype='ch'
-Nbl=[8,8,1]
+ltype='py'
+Nbl=[8,8,8]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
-NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+filet='../../data/lattice/pyrochlore/888_bc_1'
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=True,filet=filet)
 
-#filet='../../data/lattice/pyrochlore/888_bc_1'
 filetfig='/home/kappaping/research/figs/testfig.pdf'
 
 rids=[n for n in range(len(rs))]
