@@ -15,12 +15,12 @@ import densitymatrix as dm
 
 
 # Lattice structure
-ltype='py'
-Nbl=[8,8,8]
+ltype='tit'
+Nbl=[4,4,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
 filet='../../data/lattice/pyrochlore/888_bc_1'
-NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=True,filet=filet)
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
 
 filetfig='/home/kappaping/research/figs/testfig.pdf'
 

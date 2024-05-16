@@ -64,28 +64,19 @@ def tbham(ts,NB,Nfl):
     '''
     Tight-binding Hamiltonian: Assign the hoppings ts=[-t0,-t1,-t2,....] to the Hamiltonian H.
     '''
-    print('Tight-binding model: [-t0,-t1,-t2,....] =',ts,', flavor number =',Nfl)
     # Construct the tight-binding Hamiltonian with the hoppings assigned by the neighboring distances.
     H=np.zeros((Nfl*(NB.shape[0]),Nfl*(NB.shape[1])),dtype=complex)
+    tfs=[]
+    issimtb=True
     for nt in range(len(ts)):
-        if(type(ts[nt])==list):tns=ts[nt]
-        else:tns=[ts[nt],0.,0.,0.]
+        tf=ts[nt]
+        if(callable(ts[nt])):issimtb=False
+        else:
+            def tf(rid0,rid1):return ts[nt]*np.identity(Nfl)
         nbs=np.argwhere(NB==nt)
         for nb in nbs:
-            setpairpm(H,tns,nb[0],nb[1],Nfl)
-    return H
-
-
-def tbham2(ts,NB,Nfl):
-    '''
-    Tight-binding Hamiltonian: Assign the hoppings ts=[-t0,-t1,-t2,....] to the Hamiltonian H.
-    '''
-    print('Tight-binding model: [-t0,-t1,-t2,....] =',ts)
-    # Construct a list of hoppings tnbs=[ts,0,0,....] with the length matching the number of all neighboring distances.
-    maxnb=np.max(NB)
-    tnbs=ts+[0. for n in range(maxnb-(len(ts)-1))]
-    # Construct the tight-binding Hamiltonian with the hoppings assigned by the neighboring distances.
-    H=np.array([[tnbs[nb]*(fl0==fl1) for nb in row for fl1 in range(Nfl)] for row in NB for fl0 in range(Nfl)],dtype=complex)
+            setpair(H,tf(nb[0],nb[1]),nb[0],nb[1],Nfl)
+    if(issimtb):print('Tight-binding model: [-t0,-t1,-t2,....] =',ts,', flavor number =',Nfl)
     return H
 
 

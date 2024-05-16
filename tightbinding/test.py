@@ -2,4 +2,6 @@ from math import *
 import numpy as np
 import bogoliubovdegennes as bdg
 
-print(max(1,2))
+def test(a):return 1
+test=[1,2,3]
+print(callable(test))

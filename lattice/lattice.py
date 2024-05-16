@@ -13,6 +13,7 @@ import triangular
 import honeycomb
 import kagome
 import pyrochlore
+import tit
 
 
 
@@ -30,6 +31,7 @@ def ltcname(ltype):
     elif(ltype=='ho'):return honeycomb.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
     elif(ltype=='py'):return pyrochlore.ltcname()
+    elif(ltype=='tit'):return tit.ltcname()
 
 
 def blvecs(ltype):
@@ -42,6 +44,7 @@ def blvecs(ltype):
     elif(ltype=='ho'):return honeycomb.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
     elif(ltype=='py'):return pyrochlore.blvecs()
+    elif(ltype=='tit'):return tit.blvecs()
 
 
 def slvecs(ltype):
@@ -54,6 +57,7 @@ def slvecs(ltype):
     elif(ltype=='ho'):return honeycomb.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()
     elif(ltype=='py'):return pyrochlore.slvecs()
+    elif(ltype=='tit'):return tit.slvecs()
 
 
 def slnum(ltype):
