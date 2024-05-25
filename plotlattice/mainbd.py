@@ -17,7 +17,7 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='ka'
+ltype='ch'
 Nbl=[4,4,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
@@ -27,7 +27,7 @@ Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=1./3.*(1.+(0./12.))
+nf=1./2.*(1.+(0./12.))
 
 # Tight-binding Hamiltonian.
 ts=[0.,-1.,0.]

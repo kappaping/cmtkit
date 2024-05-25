@@ -9,12 +9,12 @@ import joblib
 import lattice as ltc
 
 
-ltype='tit'
-Nbl=[4,4,1]
+ltype='sq'
+Nbl=[16,16,1]
 rs=ltc.ltcsites(ltype,Nbl)[0]
 bc=1
 
-filet='../../data/lattice/tit/441_bc_1'
+filet='../../data/lattice/square/16161_bc_1'
 
 NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
 print(NB)
