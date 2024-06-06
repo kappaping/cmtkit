@@ -5,6 +5,7 @@
 from math import *
 import cmath as cmt
 import numpy as np
+from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 import matplotlib.cm
 import matplotlib.colors
@@ -12,6 +13,8 @@ plt.rcParams['font.size']=18
 plt.rcParams.update({'figure.autolayout': True})
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Polygon
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from mayavi import mlab
 
 import sys
@@ -104,7 +107,7 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',sn=np.array([0.,0.,1.]),toend=True
     return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
@@ -113,7 +116,8 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zm
     # Obtain the number of bands.
     Nbd=np.shape(H(hsks[0][1]))[0]
     # Determine the chemical potential mu that shows the filling. If no showing the filling, let nf=0 to plot all bands in blue.
-    if(tobdg==False):mu=bdth.fillingchempot(H,nf,ltype,prds,Nk)
+    if(tosetmu):mu=mu
+    elif(tobdg==False):mu=bdth.fillingchempot(H,nf,ltype,prds,Nk)
     elif(tobdg):mu=0.
     # Initial list of all plotted momenta.
     ks=np.array([])
@@ -197,32 +201,79 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
     # Type of Brillouin zone.
     bztype=bz.typeofbz(ltype,prds)
     # All high-symmetry points of the Brillouin zone. Specifying 2D.
-    hsks=[[kp[0],np.array([kp[1][0],kp[1][1]])] for kp in bz.hskpoints(ltype,prds)]
+    if(bztype=='rc' or bztype=='hx'):hsks=[[kp[0],np.array([kp[1][0],kp[1][1]])] for kp in bz.hskpoints(ltype,prds)]
+    elif(bztype=='bcc'):hsks=bz.hskpoints(ltype,prds)
     # Rectangular Brillouin zone.
     if(bztype=='rc'):
         # Corners of the Brillouin zone.
         bzcs=[hsks[3][1],hsks[4][1],-hsks[3][1],-hsks[4][1],]
         # High-symmetry points to label.
-        hskls=[hsks[0],hsks[1],hsks[2],hsks[3]]
+        hskls=[hsks[0],hsks[1],hsks[3],hsks[2]]
     # Hexagonal Brillouin zone.
     elif(bztype=='hx'):
         # Corners of the Brillouin zone.
         bzcs=[hsks[4][1],-hsks[6][1],hsks[5][1],-hsks[4][1],hsks[6][1],-hsks[5][1],]
         # High-symmetry points to label.
         hskls=[hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]]]
+    # Body-centered-cubic Brillouin zone.
+    elif(bztype=='bcc'):
+        # Corners of the Brillouin zone.
+        l0=hsks[1][1]
+        l0n=l0/np.linalg.norm(l0)
+        w0=hsks[8][1]
+        ws=[np.dot(Rotation.from_rotvec(n*(2*pi/6)*l0n).as_matrix(),w0) for n in range(6)]
+        x0=hsks[5][1]
+        x0n=x0/np.linalg.norm(x0)
+        wss=[[np.dot(Rotation.from_rotvec(n*(2*pi/4)*x0n).as_matrix(),w) for w in ws] for n in range(4)]
+        wss=wss+((-1)*np.array(wss)).tolist()
+        bzcs=np.array(wss).tolist()
+        ws=[np.dot(Rotation.from_rotvec(n*(2*pi/4)*x0n).as_matrix(),w0) for n in range(4)]
+        wss=[[np.dot(Rotation.from_rotvec(n*(2*pi/3)*l0n).as_matrix(),w) for w in ws] for n in range(3)]
+        wss=wss+((-1)*np.array(wss)).tolist()
+        bzcs2=np.array(wss).tolist()
+        bzcst=bzcs+bzcs2
+        # High-symmetry points to label.
+        hskls=bz.hskcontour(ltype,prds)[0:-1]
     # Draw the edges of the Brillouin zone.
-    plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
-    plt.rcParams.update({'font.size':30})
-    fig,ax=plt.subplots()
-    ax.add_patch(plg)
+    if(bztype=='rc' or bztype=='hx'):
+        plt.rcParams.update({'font.size':30})
+        fig,ax=plt.subplots()
+        plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
+        ax.add_patch(plg)
+#        segments=[[hskls[n][1],hskls[(n+1)%len(hskls)][1]] for n in range(len(hskls))]
+#        lc=LineCollection(segments,color='r',linewidth=3,linestyle='--')
+#        ax.add_collection(lc)
+    elif(bztype=='bcc'):
+        plt.rcParams.update({'font.size':20})
+        fig,ax=plt.subplots(subplot_kw=dict(projection='3d',computed_zorder=False))
+        plg=Poly3DCollection(bzcst,facecolor='w',edgecolor='k',alpha=0.75,linewidth=2,zorder=1)
+        ax.add_collection3d(plg)
+        segments=[[hskls[n][1],hskls[(n+1)%len(hskls)][1]] for n in range(len(hskls))]
+#        lc=Line3DCollection(segments,color='r',linewidth=2,linestyle='--',zorder=2)
+#        x0n=hskls[3][1]/np.linalg.norm(hskls[3][1])
+#        ax.add_collection(lc)
+#        segments=[[hskls[2][1],np.dot(Rotation.from_rotvec((2*pi/4)*x0n).as_matrix(),hskls[2][1])]]
+#        lc2=Line3DCollection(segments,color='k',linewidth=2,zorder=3)
+#        ax.add_collection(lc2)
     # High-symmetry points to label.
-    if(tolabel):
-        hsklxs,hsklys=[hsk[1][0] for hsk in hskls],[hsk[1][1] for hsk in hskls]
-        hskltxs,hskltys=[1.1*hsk[1][0] for hsk in hskls],[1.1*hsk[1][1] for hsk in hskls]
-        hskltxs[0]+=0.1*hskls[-1][1][0]
-        hskltys[0]+=0.1*hskls[-1][1][1]
-        [plt.text(hskltxs[n],hskltys[n],hskls[n][0]) for n in range(len(hskls))]
+    if(tolabel and (bztype=='rc' or bztype=='hx')):
+        hsklxs,hsklys=[[hsk[1][n] for hsk in hskls] for n in range(2)]
+        hsklts=[1.1*hsk[1] for hsk in hskls]
+        hsklts[0]-=(0.2*hsklts[-2])
+        hskltxs,hskltys=[[hsklt[n] for hsklt in hsklts] for n in range(2)]
+        [plt.text(hskltxs[n],hskltys[n],hskls[n][0],color='r') for n in range(len(hskls))]
         plt.scatter(hsklxs,hsklys,c='r')
+    # High-symmetry points to label.
+    elif(tolabel and bztype=='bcc'):
+        hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
+        hsklts=[1.1*hsk[1] for hsk in hskls]
+        hsklts[0]+=np.array([-0.3,-0.3,0.1])
+        hsklts[1]+=np.array([-0.3,-0.3,-0.4])
+        hsklts[2]+=np.array([-0.6,-0.3,0.])
+        hsklts[3]+=np.array([-0.2,-0.6,0.4])
+        hskltxs,hskltys,hskltzs=[[hsklt[n] for hsklt in hsklts] for n in range(3)]
+        [ax.text(hskltxs[n],hskltys[n],hskltzs[n],hskls[n][0],color='r',zorder=4) for n in range(len(hskls))]
+        ax.scatter(hsklxs,hsklys,hsklzs,c='r',zorder=10)
     # If there is data to present, map it out.
     if(todata):
         if(len(data)==0):data=len(ks)*[0.]
@@ -268,6 +319,7 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
     lim=np.max(np.abs(np.array(bzcs)))*1.1
     ax.set_xlim([-lim,lim])
     ax.set_ylim([-lim,lim])
+    if(bztype=='bcc'):ax.set_zlim([-lim,lim])
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
     if(tosave):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0,transparent=True)

@@ -30,13 +30,19 @@ def sites(rs,rplids,ltype,otype,os,res,to3d):
     ss=np.array([ltc.pos(rs[rplid],ltype) for rplid in rplids])
     [r0s,r1s,r2s]=ss.transpose()
     # For lattice plot: Set all of the order values = 0.
+    cmapt='coolwarm'
     if(otype=='l'):os=np.array([0. for rplid in rplids])
+    elif(otype=='sl'):
+        os=np.array([rs[rplid][1] for rplid in rplids])
+        os=os-(max(os)-min(os))/2.
+        os=-os/max(os)
+        cmapt='blue-red'
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(otype=='c'):os=np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os])
     # Plot
     if(to3d):
-        if(otype=='l' or otype=='c' or otype=='fo'):
-            sspl=mlab.points3d(r0s,r1s,r2s,colormap='coolwarm',resolution=res,scale_factor=0.5)
+        if(otype=='l' or otype=='sl' or otype=='wf' or otype=='c' or otype=='fo'):
+            sspl=mlab.points3d(r0s,r1s,r2s,colormap=cmapt,resolution=res,scale_factor=0.5)
             sspl.glyph.scale_mode='scale_by_vector'
             sspl.module_manager.scalar_lut_manager.use_default_range=False
             sspl.module_manager.scalar_lut_manager.data_range=[-1.,1.]
@@ -72,7 +78,7 @@ def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
         r1dms=ltc.pairdist(ltype,r0,r1,True,nptrs)[1]
         bs+=[[ltc.pos(r0,ltype),ltc.pos(r1dm,ltype)] for r1dm in r1dms]
     # For lattice plot: Set all of the order values = 0.
-    if(otype=='l'):os=[np.array([0. for nb in range(len(bs))]),np.array([0. for nb in range(len(bs))])]
+    if(otype=='l' or otype=='sl' or otype=='wf'):os=[np.array([0. for nb in range(len(bs))]),np.array([0. for nb in range(len(bs))])]
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(otype=='c'):os=[np.array([(abs(ch)**0.75)*np.sign(ch) for ch in os[0]]),np.array([(abs(ch)**0.4)*np.sign(ch) for ch in os[1]])]
     elif(otype=='s'):os=[np.array([(np.linalg.norm(sp)**0.75)*np.sign(sp[2]) for sp in os[0]]),np.array([(np.linalg.norm(sp)**0.4)*np.sign(sp[2]) for sp in os[1]])]

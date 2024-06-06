@@ -2,6 +2,5 @@
 from math import *
 import numpy as np
 
-A=np.array([[1.,2.],[3.,4.]])
-print('A=',A)
-print('max(A)=',np.max(A))
+A=[n*(-1)**m for n in range(4) for m in range(2)]
+print(A)

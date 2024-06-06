@@ -7,11 +7,17 @@ import numpy as np
 import time
 import joblib
 
+import sshchain
+import triangularchain
+import diamondchain
+import kitechain
 import square
+import lieb
 import checkerboard
 import triangular
 import honeycomb
 import kagome
+import diamond
 import pyrochlore
 import tit
 
@@ -25,11 +31,17 @@ def ltcname(ltype):
     '''
     Lattice name
     '''
-    if(ltype=='sq'):return square.ltcname()
+    if(ltype=='sshch'):return sshchain.ltcname()
+    elif(ltype=='trch'):return triangularchain.ltcname()
+    elif(ltype=='dich'):return diamondchain.ltcname()
+    elif(ltype=='kich'):return kitechain.ltcname()
+    elif(ltype=='sq'):return square.ltcname()
     elif(ltype=='ch'):return checkerboard.ltcname()
+    elif(ltype=='li'):return lieb.ltcname()
     elif(ltype=='tr'):return triangular.ltcname()
     elif(ltype=='ho'):return honeycomb.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
+    elif(ltype=='dia'):return diamond.ltcname()
     elif(ltype=='py'):return pyrochlore.ltcname()
     elif(ltype=='tit'):return tit.ltcname()
 
@@ -38,11 +50,17 @@ def blvecs(ltype):
     '''
     Bravais lattice vectors
     '''
-    if(ltype=='sq'):return square.blvecs()
+    if(ltype=='sshch'):return sshchain.blvecs()
+    elif(ltype=='trch'):return triangularchain.blvecs()
+    elif(ltype=='dich'):return diamondchain.blvecs()
+    elif(ltype=='kich'):return kitechain.blvecs()
+    elif(ltype=='sq'):return square.blvecs()
     elif(ltype=='ch'):return checkerboard.blvecs()
+    elif(ltype=='li'):return lieb.blvecs()
     elif(ltype=='tr'):return triangular.blvecs()
     elif(ltype=='ho'):return honeycomb.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
+    elif(ltype=='dia'):return diamond.blvecs()
     elif(ltype=='py'):return pyrochlore.blvecs()
     elif(ltype=='tit'):return tit.blvecs()
 
@@ -51,11 +69,17 @@ def slvecs(ltype):
     '''
     Sublattice vectors
     '''
-    if(ltype=='sq'):return square.slvecs()
+    if(ltype=='sshch'):return sshchain.slvecs()
+    elif(ltype=='trch'):return triangularchain.slvecs()
+    elif(ltype=='dich'):return diamondchain.slvecs()
+    elif(ltype=='kich'):return kitechain.slvecs()
+    elif(ltype=='sq'):return square.slvecs()
     elif(ltype=='ch'):return checkerboard.slvecs()
+    elif(ltype=='li'):return lieb.slvecs()
     elif(ltype=='tr'):return triangular.slvecs()
     elif(ltype=='ho'):return honeycomb.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()
+    elif(ltype=='dia'):return diamond.slvecs()
     elif(ltype=='py'):return pyrochlore.slvecs()
     elif(ltype=='tit'):return tit.slvecs()
 

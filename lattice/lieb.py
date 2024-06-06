@@ -1,6 +1,6 @@
-## Square lattice module
+## Lieb lattice module
 
-'''Square lattice module: Lattice structure.'''
+'''Lieb lattice module: Structure of Lieb lattice'''
 
 from math import *
 import numpy as np
@@ -17,21 +17,21 @@ def ltcname():
     '''
     Lattice name
     '''
-    return 'Square lattice'
+    return 'Lieb lattice'
 
 
 def blvecs():
     '''
     Bravais lattice vectors
     '''
-    return np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+    return np.array([[2.,0.,0.],[0.,2.,0.],[0.,0.,1.]])
 
 
 def slvecs():
     '''
     Sublattice vectors
     '''
-    return np.array([[0.,0.,0.]])
+    return np.array([[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]])
 
 
 

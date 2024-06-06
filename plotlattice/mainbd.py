@@ -17,8 +17,8 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='ch'
-Nbl=[4,4,1]
+ltype='py'
+Nbl=[2,2,2]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
 NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
@@ -27,7 +27,8 @@ Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=1./2.*(1.+(0./12.))
+nf=1./4.*(1.+(2./8.))
+mu=0.
 
 # Tight-binding Hamiltonian.
 ts=[0.,-1.,0.]
@@ -37,12 +38,19 @@ H=tb.tbham(ts,NB,Nfl)
 prds=[1,1,1]
 rucs,RUCRP=bdth.ftsites(ltype,rs,prds)
 
+hsks=bz.hskpoints(ltype,prds)
+print('{')
+for hsk in hsks:
+    print('{',hsk[1][0],',',hsk[1][1],',',hsk[1][2],'},')
+print('}')
+
 # Get the momentum-space Hamiltonian.
 Hk=lambda k:bdth.ftham(k,H,Nrfl,RDV,rucs,RUCRP)
 Nk=50
 
 filetfig='../../figs/hartreefock/testbd.pdf'
 tosave=True
-plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosave=tosave,filetfig=filetfig)
+tosetmu=True
+plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosetmu=tosetmu,mu=mu,tosave=tosave,filetfig=filetfig)
 
 

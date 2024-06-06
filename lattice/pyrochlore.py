@@ -1,6 +1,6 @@
-## Lattice module
+## Pyrochlore lattice module
 
-'''Lattice module: For the setup of lattices'''
+'''Pyrochlore lattice module: Structure of the lattice.'''
 
 from math import *
 import numpy as np

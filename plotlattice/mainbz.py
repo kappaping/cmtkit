@@ -13,10 +13,10 @@ import bandtheory as bdth
 import plotband as plbd
 
 
-ltype='ka'
+ltype='ho'
 print(ltc.ltcname(ltype))
 
-prds=[1,2,1]
+prds=[1,1,1]
 
 Nkc=9
 
