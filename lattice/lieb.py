@@ -1,6 +1,6 @@
 ## Lieb lattice module
 
-'''Lieb lattice module: Structure of Lieb lattice'''
+'''Lieb lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

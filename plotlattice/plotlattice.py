@@ -66,7 +66,7 @@ def sites(rs,rplids,ltype,otype,os,res,to3d):
             plt.clim(-1.,1.)
 
 
-def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
+def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res,slb):
     '''
     Lattice bond positions.
     '''
@@ -75,8 +75,11 @@ def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
     nptrs=ltc.periodictrsl(Nbl,bc)
     for pair in nbplids:
         r0,r1=rs[pair[0]],rs[pair[1]]
-        r1dms=ltc.pairdist(ltype,r0,r1,True,nptrs)[1]
-        bs+=[[ltc.pos(r0,ltype),ltc.pos(r1dm,ltype)] for r1dm in r1dms]
+        if(otype=='wf' and slb!=None and r0[1]!=slb and r1[1]!=slb):toadd=False
+        else:toadd=True
+        if(toadd):
+            r1dms=ltc.pairdist(ltype,r0,r1,True,nptrs)[1]
+            bs+=[[ltc.pos(r0,ltype),ltc.pos(r1dm,ltype)] for r1dm in r1dms]
     # For lattice plot: Set all of the order values = 0.
     if(otype=='l' or otype=='sl' or otype=='wf'):os=[np.array([0. for nb in range(len(bs))]),np.array([0. for nb in range(len(bs))])]
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
@@ -116,7 +119,7 @@ def bonds(rs,nbplids,Nbl,ltype,bc,otype,os,res):
 #        bsplr[n].mlab_source.dataset.point_data.scalars=[os[0][n],os[0][n]]
 
 
-def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),dpi=300,to3d=True,show3d=False,plaz=0.,plel=0.):
+def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],res=50,size=(5.,5.),dpi=300,to3d=True,show3d=False,plaz=0.,plel=0.,dist=None,slb=None):
     '''
     Plot the lattice
     '''
@@ -124,9 +127,9 @@ def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],
     bos=[os[1],os[2]]
     if(to3d):mlab.figure(bgcolor=None,size=(2000,2000))
     sites(rs,rplids,ltype,otype,sos,res,to3d)
-    if(to3d):bonds(rs,nbplids,Nbl,ltype,bc,otype,bos,res)
+    if(to3d):bonds(rs,nbplids,Nbl,ltype,bc,otype,bos,res,slb)
     if(to3d):
-        mlab.view(azimuth=plaz,elevation=plel)
+        mlab.view(azimuth=plaz,elevation=plel,distance=dist,focalpoint=sum([ltc.pos(rs[rplid],ltype) for rplid in rplids])/len(rplids))
         f=mlab.gcf()
         f.scene._lift()
         arr=mlab.screenshot(mode='rgba',antialiased=True)
@@ -162,7 +165,7 @@ def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],
 '''Plot the orders'''
 
 
-def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,filetfig=[],tobdg=False):
+def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,dist=None,filetfig=[],tobdg=False):
     '''
     Plot the orders.
     '''
@@ -226,17 +229,17 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,
                     odssspl[m0][m1][1]+=[odsssr[m0][m1][1][nb]]
                     odssspl[m0][m1][2]+=[odsssr[m0][m1][2][nb]]
     # Plot the charge orders.
-    plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][0],'c',odssspl[0][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][0],'c',odssspl[0][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
     # If the flavor number > 1: Plot the spin orders.
-    if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][1],'s',odssspl[0][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][1],'s',odssspl[0][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
     # If the flavor number > 2: Plot the orbital orders.
-    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][2],'s',odssspl[0][2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+    if(Nrfl[1]>2):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[0][2],'s',odssspl[0][2],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
     # Plot the pairing orders.
     if(tobdg):
         # Plot the flavor-even pairing orders.
-        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][0],'fe',odssspl[1][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][0],'fe',odssspl[1][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
         # If the flavor number > 2: Plot the flavor-odd pairing orders.
-        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][1],'fo',odssspl[1][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel)
+        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][1],'fo',odssspl[1][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
 
 
 def rescaledorder(osss,scl):

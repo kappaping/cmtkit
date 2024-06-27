@@ -1,6 +1,6 @@
 ## Pyrochlore lattice module
 
-'''Pyrochlore lattice module: Structure of the lattice.'''
+'''Pyrochlore lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

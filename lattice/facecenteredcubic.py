@@ -1,6 +1,6 @@
-## Triangular lattice module
+## Face-centered cubic lattice module
 
-'''Triangular lattice module: Lattice structure.'''
+'''Face-centered cubic lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np
@@ -17,14 +17,14 @@ def ltcname():
     '''
     Lattice name
     '''
-    return 'Triangular lattice'
+    return 'Face-centered cubic lattice'
 
 
 def blvecs():
     '''
     Bravais lattice vectors
     '''
-    return np.array([[0.,1.,0.],[sqrt(3.)/2.,1./2.,0.],[0.,0.,1.]])
+    return np.array([[0.,1.,0.],[sqrt(3.)/2.,1./2.,0.],[1/(2.*sqrt(3.)),1./2.,sqrt(2./3.)]])
 
 
 def slvecs():

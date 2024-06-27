@@ -1,6 +1,6 @@
 ## Diamond chain lattice module
 
-'''Diamond chain lattice module: Structure of Diamond lattice'''
+'''Diamond chain lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

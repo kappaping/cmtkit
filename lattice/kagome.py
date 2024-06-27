@@ -1,6 +1,6 @@
 ## Kagome lattice module
 
-'''Kagome lattice module: Structure of kagome lattice'''
+'''Kagome lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

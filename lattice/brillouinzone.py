@@ -21,13 +21,15 @@ def typeofbz(ltype,prds):
     Define the type of the Brillouin zone.
     '''
     # 1D Brillouin zone.
-    if(ltype in ['sshch','trch','dich','kich']):return '1d'
+    if(ltype in ['zi1d','tr1d','dia1d','ki1d']):return '1d'
     # Rectangular Brillouin zone.
     if((ltype in ['sq','ch','li']) or (prds[0]>1 and prds[1]==1) or (prds[0]==1 and prds[1]>1)):return 'rc'
     # Hexagonal Brillouin zone.
     elif(ltype in ['tr','ho','ka']):return 'hx'
     # Body-centered-cubic Brillouin zone.
-    elif(ltype in ['dia','py']):return 'bcc'
+    elif(ltype in ['sc','bcc0','fcc0']):return 'sc'
+    # Body-centered-cubic Brillouin zone.
+    elif(ltype in ['fcc','dia','py']):return 'bcc'
 
 
 def ucblvecs(ltype,prds):
@@ -74,6 +76,12 @@ def hskpoints(ltype,prds):
         m2=-m0-m1
         return [['\u0393',pi*np.array([0.,0.,0.])],['M',m0],['M',m1],['M',m2],
                 ['K',(2./3.)*(m1-m2)],['K',(2./3.)*(m2-m0)],['K',(2./3.)*(m0-m1)]]
+    # Simple cubic Brillouin zone.
+    elif(bztype=='sc'):
+        [x0,x1,x2]=[pi*np.cross(ucblvs[(n+1)%3],ucblvs[(n+2)%3])/np.dot(ucblvs[0],np.cross(ucblvs[1],ucblvs[2])) for n in range(3)]
+        m0=x0+x1
+        r0=m0+x2
+        return [['\u0393',pi*np.array([0.,0.,0.])],['X',x0],['X',x1],['X',x2],['M',m0],['R',r0]]
     # Body-centered-cubic Brillouin zone.
     elif(bztype=='bcc'):
         [l0,l1,l2]=[pi*np.cross(ucblvs[n%3],ucblvs[(n+1)%3])/np.dot(ucblvs[0],np.cross(ucblvs[1],ucblvs[2])) for n in range(3)]
@@ -103,6 +111,8 @@ def hskcontour(ltype,prds,cttype='s'):
     # Contour of hexagonal Brillouin zone.
     elif(bztype=='hx'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0]]
     # Contour of body-centered-cubic Brillouin zone.
+    elif(bztype=='sc'):return [hsks[0],hsks[1],hsks[4],hsks[5],hsks[0]]
+    # Contour of body-centered-cubic Brillouin zone.
     elif(bztype=='bcc'):return [hsks[0],[hsks[2][0],-hsks[2][1]],[hsks[8][0],hsks[6][1]+(1./2.)*hsks[7][1]],hsks[6],hsks[0]]
 
 
@@ -128,13 +138,17 @@ def listbz(ltype,prds,Nkc,bzop=False):
     if(bztype=='1d'):Nsdp=1
     elif(bztype=='rc'):Nsdp=2
     elif(bztype=='hx'):Nsdp=3
+    elif(bztype=='sc'):Nsdp=3
     elif(bztype=='bcc'):Nsdp=7
     # Dimensions.
     if(bztype=='1d'):Nkd=1
     elif(bztype=='rc' or bztype=='hx'):Nkd=2
-    elif(bztype=='bcc'):Nkd=3
+    elif(bztype=='sc' or bztype=='bcc'):Nkd=3
     # Edge centers of the Brillouin zone.
     kecs=[hsks[nsdp+1][1] for nsdp in range(Nsdp)]
+    if(bztype=='bcc'):
+        for nsdp in [4,5,6]:
+            kecs[nsdp]=-1*kecs[nsdp]
     # List of momenta.
     ks=[]
     # List the momentum bounded by the Brillouin-zone edges.

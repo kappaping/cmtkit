@@ -1,6 +1,6 @@
-## Triangular chain lattice module
+## Simple cubic lattice module
 
-'''Triangular chain lattice module: Structure of triangular chain lattice'''
+'''Simple cubic lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np
@@ -17,7 +17,7 @@ def ltcname():
     '''
     Lattice name
     '''
-    return 'Triangular chain lattice'
+    return 'Simple cubic lattice'
 
 
 def blvecs():
@@ -31,7 +31,7 @@ def slvecs():
     '''
     Sublattice vectors
     '''
-    return np.array([[0.,0.,0.],[1./2.,sqrt(3.)/2.,0.]])
+    return np.array([[0.,0.,0.]])
 
 
 

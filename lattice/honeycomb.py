@@ -1,6 +1,6 @@
 ## Honeycomb lattice module
 
-'''Honeycomb lattice module: Structure of honeycomb lattice'''
+'''Honeycomb lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

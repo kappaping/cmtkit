@@ -17,11 +17,12 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='py'
+ltype='fcc0'
 Nbl=[2,2,2]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
-NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+filet='../../data/lattice/diamond/888_bc_1'
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
 # Flavor and state.
 Nfl=1
 Nrfl=[Nr,Nfl]
@@ -31,18 +32,12 @@ nf=1./4.*(1.+(2./8.))
 mu=0.
 
 # Tight-binding Hamiltonian.
-ts=[0.,-1.,0.]
+ts=[0.,-1.]
 H=tb.tbham(ts,NB,Nfl)
 
 # Set the unit cell with periodicity prds.
 prds=[1,1,1]
 rucs,RUCRP=bdth.ftsites(ltype,rs,prds)
-
-hsks=bz.hskpoints(ltype,prds)
-print('{')
-for hsk in hsks:
-    print('{',hsk[1][0],',',hsk[1][1],',',hsk[1][2],'},')
-print('}')
 
 # Get the momentum-space Hamiltonian.
 Hk=lambda k:bdth.ftham(k,H,Nrfl,RDV,rucs,RUCRP)

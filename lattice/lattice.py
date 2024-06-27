@@ -7,8 +7,8 @@ import numpy as np
 import time
 import joblib
 
-import sshchain
-import triangularchain
+import zigzag
+import triangularladder
 import diamondchain
 import kitechain
 import square
@@ -17,6 +17,10 @@ import checkerboard
 import triangular
 import honeycomb
 import kagome
+import simplecubic
+import bodycenteredcubic0
+import facecenteredcubic0
+import facecenteredcubic
 import diamond
 import pyrochlore
 import tit
@@ -31,16 +35,20 @@ def ltcname(ltype):
     '''
     Lattice name
     '''
-    if(ltype=='sshch'):return sshchain.ltcname()
-    elif(ltype=='trch'):return triangularchain.ltcname()
-    elif(ltype=='dich'):return diamondchain.ltcname()
-    elif(ltype=='kich'):return kitechain.ltcname()
+    if(ltype=='zi1d'):return zigzag.ltcname()
+    elif(ltype=='tr1d'):return triangularladder.ltcname()
+    elif(ltype=='dia1d'):return diamondchain.ltcname()
+    elif(ltype=='ki1d'):return kitechain.ltcname()
     elif(ltype=='sq'):return square.ltcname()
     elif(ltype=='ch'):return checkerboard.ltcname()
     elif(ltype=='li'):return lieb.ltcname()
     elif(ltype=='tr'):return triangular.ltcname()
     elif(ltype=='ho'):return honeycomb.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
+    elif(ltype=='sc'):return simplecubic.ltcname()
+    elif(ltype=='bcc0'):return bodycenteredcubic0.ltcname()
+    elif(ltype=='fcc0'):return facecenteredcubic0.ltcname()
+    elif(ltype=='fcc'):return facecenteredcubic.ltcname()
     elif(ltype=='dia'):return diamond.ltcname()
     elif(ltype=='py'):return pyrochlore.ltcname()
     elif(ltype=='tit'):return tit.ltcname()
@@ -50,16 +58,20 @@ def blvecs(ltype):
     '''
     Bravais lattice vectors
     '''
-    if(ltype=='sshch'):return sshchain.blvecs()
-    elif(ltype=='trch'):return triangularchain.blvecs()
-    elif(ltype=='dich'):return diamondchain.blvecs()
-    elif(ltype=='kich'):return kitechain.blvecs()
+    if(ltype=='zi1d'):return zigzag.blvecs()
+    elif(ltype=='tr1d'):return triangularladder.blvecs()
+    elif(ltype=='dia1d'):return diamondchain.blvecs()
+    elif(ltype=='ki1d'):return kitechain.blvecs()
     elif(ltype=='sq'):return square.blvecs()
     elif(ltype=='ch'):return checkerboard.blvecs()
     elif(ltype=='li'):return lieb.blvecs()
     elif(ltype=='tr'):return triangular.blvecs()
     elif(ltype=='ho'):return honeycomb.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
+    elif(ltype=='sc'):return simplecubic.blvecs()
+    elif(ltype=='bcc0'):return bodycenteredcubic0.blvecs()
+    elif(ltype=='fcc0'):return facecenteredcubic0.blvecs()
+    elif(ltype=='fcc'):return facecenteredcubic.blvecs()
     elif(ltype=='dia'):return diamond.blvecs()
     elif(ltype=='py'):return pyrochlore.blvecs()
     elif(ltype=='tit'):return tit.blvecs()
@@ -69,16 +81,20 @@ def slvecs(ltype):
     '''
     Sublattice vectors
     '''
-    if(ltype=='sshch'):return sshchain.slvecs()
-    elif(ltype=='trch'):return triangularchain.slvecs()
-    elif(ltype=='dich'):return diamondchain.slvecs()
-    elif(ltype=='kich'):return kitechain.slvecs()
+    if(ltype=='zi1d'):return zigzag.slvecs()
+    elif(ltype=='tr1d'):return triangularladder.slvecs()
+    elif(ltype=='dia1d'):return diamondchain.slvecs()
+    elif(ltype=='ki1d'):return kitechain.slvecs()
     elif(ltype=='sq'):return square.slvecs()
     elif(ltype=='ch'):return checkerboard.slvecs()
     elif(ltype=='li'):return lieb.slvecs()
     elif(ltype=='tr'):return triangular.slvecs()
     elif(ltype=='ho'):return honeycomb.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()
+    elif(ltype=='sc'):return simplecubic.slvecs()
+    elif(ltype=='bcc0'):return bodycenteredcubic0.slvecs()
+    elif(ltype=='fcc0'):return facecenteredcubic0.slvecs()
+    elif(ltype=='fcc'):return facecenteredcubic.slvecs()
     elif(ltype=='dia'):return diamond.slvecs()
     elif(ltype=='py'):return pyrochlore.slvecs()
     elif(ltype=='tit'):return tit.slvecs()

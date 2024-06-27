@@ -13,7 +13,7 @@ import bandtheory as bdth
 import plotband as plbd
 
 
-ltype='ho'
+ltype='sc'
 print(ltc.ltcname(ltype))
 
 prds=[1,1,1]

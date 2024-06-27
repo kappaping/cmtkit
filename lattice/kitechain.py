@@ -1,6 +1,6 @@
 ## Kite chain lattice module
 
-'''Kite chain lattice module: Structure of kite lattice'''
+'''Kite chain lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

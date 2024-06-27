@@ -1,6 +1,6 @@
-## Su-Schrieffer-Heeger chain lattice module
+## Zigzag lattice module
 
-'''Su-Schrieffer-Heeger chain lattice module: Structure of Su-Schrieffer-Heeger lattice'''
+'''Zigzag lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np
@@ -17,7 +17,7 @@ def ltcname():
     '''
     Lattice name
     '''
-    return 'Su-Schrieffer-Heeger chain lattice'
+    return 'Zigzag lattice'
 
 
 def blvecs():

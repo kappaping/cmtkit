@@ -9,12 +9,12 @@ import joblib
 import lattice as ltc
 
 
-ltype='dia'
-Nbl=[8,8,8]
+ltype='ka'
+Nbl=[18,18,1]
 rs=ltc.ltcsites(ltype,Nbl)[0]
 bc=1
 
-filet='../../data/lattice/diamond/888_bc_1'
+filet='../../data/lattice/kagome/18181_bc_1'
 
 NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
 print(NB)

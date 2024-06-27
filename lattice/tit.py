@@ -1,6 +1,6 @@
 ## TaIrTe4 lattice module
 
-'''TaIrTe4 lattice module: Structure of TaIrTe4 lattice'''
+'''TaIrTe4 lattice module: Lattice structure.'''
 
 from math import *
 import numpy as np

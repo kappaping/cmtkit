@@ -202,7 +202,7 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
     bztype=bz.typeofbz(ltype,prds)
     # All high-symmetry points of the Brillouin zone. Specifying 2D.
     if(bztype=='rc' or bztype=='hx'):hsks=[[kp[0],np.array([kp[1][0],kp[1][1]])] for kp in bz.hskpoints(ltype,prds)]
-    elif(bztype=='bcc'):hsks=bz.hskpoints(ltype,prds)
+    elif(bztype=='sc' or bztype=='bcc'):hsks=bz.hskpoints(ltype,prds)
     # Rectangular Brillouin zone.
     if(bztype=='rc'):
         # Corners of the Brillouin zone.
@@ -215,6 +215,19 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
         bzcs=[hsks[4][1],-hsks[6][1],hsks[5][1],-hsks[4][1],hsks[6][1],-hsks[5][1],]
         # High-symmetry points to label.
         hskls=[hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]]]
+    # Simple cubic Brillouin zone.
+    elif(bztype=='sc'):
+        # Corners of the Brillouin zone.
+        x0=hsks[1][1]
+        x0n=x0/np.linalg.norm(x0)
+        r0=hsks[5][1]
+        rs=[np.dot(Rotation.from_rotvec(n*(2*pi/4)*x0n).as_matrix(),r0) for n in range(4)]
+        r0n=r0/np.linalg.norm(r0)
+        rss=[[np.dot(Rotation.from_rotvec(n*(2*pi/3)*r0n).as_matrix(),r) for r in rs] for n in range(3)]
+        rss=rss+((-1)*np.array(rss)).tolist()
+        bzcs=np.array(rss).tolist()
+        # High-symmetry points to label.
+        hskls=bz.hskcontour(ltype,prds)[0:-1]
     # Body-centered-cubic Brillouin zone.
     elif(bztype=='bcc'):
         # Corners of the Brillouin zone.
@@ -243,6 +256,12 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
 #        segments=[[hskls[n][1],hskls[(n+1)%len(hskls)][1]] for n in range(len(hskls))]
 #        lc=LineCollection(segments,color='r',linewidth=3,linestyle='--')
 #        ax.add_collection(lc)
+    elif(bztype=='sc'):
+        plt.rcParams.update({'font.size':20})
+        fig,ax=plt.subplots(subplot_kw=dict(projection='3d',computed_zorder=False))
+        plg=Poly3DCollection(bzcs,facecolor='w',edgecolor='k',alpha=0.75,linewidth=2,zorder=1)
+        ax.add_collection3d(plg)
+        segments=[[hskls[n][1],hskls[(n+1)%len(hskls)][1]] for n in range(len(hskls))]
     elif(bztype=='bcc'):
         plt.rcParams.update({'font.size':20})
         fig,ax=plt.subplots(subplot_kw=dict(projection='3d',computed_zorder=False))
@@ -263,7 +282,16 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
         hskltxs,hskltys=[[hsklt[n] for hsklt in hsklts] for n in range(2)]
         [plt.text(hskltxs[n],hskltys[n],hskls[n][0],color='r') for n in range(len(hskls))]
         plt.scatter(hsklxs,hsklys,c='r')
-    # High-symmetry points to label.
+    elif(tolabel and bztype=='sc'):
+        hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
+        hsklts=[1.1*hsk[1] for hsk in hskls]
+        hsklts[0]+=np.array([-0.5,0.,0.])
+        hsklts[1]+=np.array([0.,0.,0.])
+        hsklts[2]+=np.array([-0.1,0.,0.])
+        hsklts[3]+=np.array([-0.2,0.,-0.1])
+        hskltxs,hskltys,hskltzs=[[hsklt[n] for hsklt in hsklts] for n in range(3)]
+        [ax.text(hskltxs[n],hskltys[n],hskltzs[n],hskls[n][0],color='r',zorder=4) for n in range(len(hskls))]
+        ax.scatter(hsklxs,hsklys,hsklzs,c='r',zorder=10)
     elif(tolabel and bztype=='bcc'):
         hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
         hsklts=[1.1*hsk[1] for hsk in hskls]
@@ -281,7 +309,8 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
             k0s,k1s,k2s=np.array(ks).T
             if(toclmax):camax=np.max(np.abs(np.array(data)))
             else:camax=max(np.max(np.abs(np.array(data))),1./bzvol)
-            plt.scatter(k0s,k1s,s=40.,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
+            if(bztype in ['rc','hx']):plt.scatter(k0s,k1s,s=40.,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
+            elif(bztype in ['sc','bcc']):ax.scatter(k0s,k1s,k2s,c=data,vmin=-camax,vmax=camax,cmap='coolwarm')
         elif(ptype=='gd'):
             kctss=[bz.gridcorners(k,dks) for k in ks]
             if(bzop==False):
@@ -319,7 +348,7 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
     lim=np.max(np.abs(np.array(bzcs)))*1.1
     ax.set_xlim([-lim,lim])
     ax.set_ylim([-lim,lim])
-    if(bztype=='bcc'):ax.set_zlim([-lim,lim])
+    if(bztype=='sc' or bztype=='bcc'):ax.set_zlim([-lim,lim])
     ax.set_aspect('equal', adjustable='box')
     plt.axis('off')
     if(tosave):plt.savefig(filetfig,dpi=2000,bbox_inches='tight',pad_inches=0,transparent=True)

@@ -15,6 +15,7 @@ import lattice as ltc
 import brillouinzone as bz
 import tightbinding as tb
 import bogoliubovdegennes as bdg
+import dmgen 
 import dmtriangular as dmtr
 import dmkagome as dmka
 
@@ -92,7 +93,8 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=
         if(tobdg==False):P+=nf*np.identity(Nst)
         elif(tobdg):P+=nf*np.identity(2*Nst)
         dpe=0.1
-        if(ltype=='tr'):dmtr.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
+        if(Ptype[0:3]=='gen'):dmgen.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
+        elif(ltype=='tr'):dmtr.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
         elif(ltype=='ka'):dmka.denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg)
     if(toptb):
         print('Perturb the density matrix at scale =',ptb)
