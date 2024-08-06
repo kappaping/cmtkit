@@ -17,8 +17,8 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='fcc0'
-Nbl=[2,2,2]
+ltype='ka'
+Nbl=[4,4,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
 filet='../../data/lattice/diamond/888_bc_1'
@@ -28,11 +28,11 @@ Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=1./4.*(1.+(2./8.))
+nf=2./3.*(1.+(0./8.))
 mu=0.
 
 # Tight-binding Hamiltonian.
-ts=[0.,-1.]
+ts=[0.,-1.,0.5]
 H=tb.tbham(ts,NB,Nfl)
 
 # Set the unit cell with periodicity prds.
@@ -45,7 +45,7 @@ Nk=50
 
 filetfig='../../figs/hartreefock/testbd.pdf'
 tosave=True
-tosetmu=True
+tosetmu=False
 plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosetmu=tosetmu,mu=mu,tosave=tosave,filetfig=filetfig)
 
 

@@ -60,22 +60,24 @@ def termmat(M,m,rid0,fl0,rid1,fl1,Nfl,symtype='herm',tobdg=False,phid0=0,phid1=0
 '''Set Hamiltonian'''
 
 
-def tbham(ts,NB,Nfl):
+def tbham(ts,NB,Nfl,rs=[]):
     '''
     Tight-binding Hamiltonian: Assign the hoppings ts=[-t0,-t1,-t2,....] to the Hamiltonian H.
     '''
     # Construct the tight-binding Hamiltonian with the hoppings assigned by the neighboring distances.
     H=np.zeros((Nfl*(NB.shape[0]),Nfl*(NB.shape[1])),dtype=complex)
-    tfs=[]
+    # Determine if the tight-binding parameters ts is simple hopping t or not.
     issimtb=True
     for nt in range(len(ts)):
         tf=ts[nt]
+        # Hopping is a function.
         if(callable(ts[nt])):issimtb=False
+        # Hopping is a simple tight-binding parameter.
         else:
-            def tf(rid0,rid1):return ts[nt]*np.identity(Nfl)
+            def tf(rid0,rid1,rs):return ts[nt]*np.identity(Nfl)
         nbs=np.argwhere(NB==nt)
         for nb in nbs:
-            setpair(H,tf(nb[0],nb[1]),nb[0],nb[1],Nfl)
+            setpair(H,tf(nb[0],nb[1],rs),nb[0],nb[1],Nfl)
     if(issimtb):print('Tight-binding model: [-t0,-t1,-t2,....] =',ts,', flavor number =',Nfl)
     return H
 

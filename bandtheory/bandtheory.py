@@ -116,7 +116,8 @@ def fillingchempot(H,nf,ltype,prds,Nk):
     ees.sort()
     Nock=round(nf*len(ees))
     mu=(ees[Nock-1]+ees[Nock])/2.
-    print('mu = ',mu)
+    dee=ees[Nock]-ees[Nock-1]
+    print('mu = ',mu,', energy gap =',dee)
     return mu
 
 
