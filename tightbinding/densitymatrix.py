@@ -35,7 +35,7 @@ def projdenmat(U,n0,n1,Nst):
     return np.round(np.linalg.multi_dot([U,D,UT]),25)
 
 
-def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=np.array([]),nbcpmax=-1,Nbli=[],toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
+def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=np.array([]),nbcpmax=-1,Nbli=[],ntr=np.array([0,0,0]),toptb=False,ptb=0.01,toflrot=False,Ufl=np.array([[0.965926-0.12941j,-0.194114-0.112072j],[0.194114-0.112072j,0.965926+0.12941j]]),tobdg=False):
     '''
     Set up a density matrix.
     Return: A density matrix.
@@ -86,6 +86,11 @@ def setdenmat(Ptype,Nrfl,nf,fileti='',ltype='',rs=[],Nbl=[],NB=np.array([]),RDV=
     elif(Ptype=='copy'):
         print('Copy the density matrix with system size',Nbli,'from:', fileti)
         P=denmatcopy(ltype,rs,Nrfl,Nbl,NB,nbcpmax,fileti,Nbli,tobdg)
+    # Translate the density matrix at a displacement ntr from the one in file fileti under periodic boundary condition.
+    elif(Ptype=='trsl'):
+        print('Translate the density matrix at the displacement',ntr,'from:', fileti)
+        P=joblib.load(fileti)
+        P=np.array([[P[tb.stateid(ltc.siteid(ltc.trsl(rs[rid0],ntr,Nbl,1),rs),fl0,Nrfl[1]),tb.stateid(ltc.siteid(ltc.trsl(rs[rid1],ntr,Nbl,1),rs),fl1,Nrfl[1])] for rid1 in range(Nrfl[0]) for fl1 in range(Nrfl[1])] for rid0 in range(Nrfl[0]) for fl0 in range(Nrfl[1])])
     # Others: The density matrix is assigned by other functions.
     else:
         print('Assign the density matrix as:', Ptype)
@@ -313,7 +318,7 @@ def momentumpairs(ks,bzop,qs,ltype,prds,chipm):
     Nk=len(ks)
     # Define the function which moves chipm*k+q into the Brillouin zone.
     def moveinbz(kq0,krls,kecs,Nsdp):
-        kqs=[kq0+np.dot(np.array([sgn0,sgn1]),krls) for sgn0 in [0,-1,1] for sgn1 in [0,-1,1]]
+        kqs=[kq0+np.dot(np.array([sgn0,sgn1]),krls) for sgn0 in [0,-1,1,-2,2] for sgn1 in [0,-1,1,-2,2]]
         return kqs[np.argwhere(np.array([bz.inbz(kq,kecs,Nsdp,bzop=bzop) for kq in kqs]))[0,0]]
     # Get the list of chipm*k+q for k in ks and q in qs.
     kqids=np.array([[np.argwhere(np.array([np.linalg.norm(kq-kt)<1e-14 for kq in [moveinbz(chipm*k+q,krls,kecs,Nsdp)] for kt in ks]))[0,0] for k in ks] for q in qs])
@@ -348,12 +353,12 @@ def symmeigenstates(Hk,ks,q,knkids,Nfl,ltype,otype):
         Ueet=Uee.conj()
         if(Nfl==2 and dgnm==1):Ueet=np.dot(np.kron(np.identity(ltc.slnum(ltype)),1.j*tb.paulimat(2)),Ueet)
         return Ueet
-    if((otype=='c' or otype=='fe' or otype=='fo')):# and np.linalg.norm(q)<1e-14):
+    if((otype=='c' or otype=='fe' or otype=='fo') and np.linalg.norm(q)<1e-14):
         for kid in range(len(ks)):Uees[knkids[kid]]=timereversal(Uees[kid])
     return Uees,dgnm
 
 
-def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],nbp=-1,tori='r',tobdg=False):
+def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],nbp=-1,toeig=True,tori='r',tobdg=False):
     if(otype=='c' or otype=='s' or otype=='o'):
         Pt=P
         if(tobdg):Pt=bdg.bdgblock(P,0,0)
@@ -373,7 +378,10 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],n
     Oks=np.array([sparse.tensordot(fourierdenmat(kid),Pt,axes=((0,1),(0,1)),return_type=np.ndarray) for kid in range(Nk)])
     '''
     Nruc=len(rucs)
-    Oks=[np.array([[sum([Pt[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[ridp[0]],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[ridp[0]],ltype)-RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for kid in range(Nk)]
+    Nsl=ltc.slnum(ltype)
+    r0c=sum([ltc.pos([np.array([0,0,0]),sl],ltype) for sl in range(Nsl)])/Nsl
+    Oks=[(1./tb.statenum(Nrfl))*sum([Pt[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl)]*(e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-r0c)+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-r0c)))*np.array([[(rs[rid0][1]==sl0 and rs[rid1][1]==sl1) for sl1 in range(Nsl) for fl1 in range(Nfl)] for sl0 in range(Nsl) for fl0 in range(Nfl)]) for rid1 in range(Nr) for fl1 in range(Nfl) for rid0 in range(Nr) for fl0 in range(Nfl)]) for kid in range(Nk)]
+#    Oks=[np.array([[sum([Pt[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[ridp[0]],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[ridp[0]],ltype)-RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for kid in range(Nk)]
     # Eigenstates.
     Uees,dgnm=symmeigenstates(Hk,ks,q,kqids[0],Nfl,ltype,otype)
     # Representations.
@@ -385,8 +393,9 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],n
     elif(otype=='fo'):
         if(Nfl==2 and dgnm==2):oreps=[np.dot(tb.paulimat(0)/sqrt(2.),1.j*tb.paulimat(2))]
     Oks=[[np.dot(np.kron(np.identity(ltc.slnum(ltype)),orep),Ok) for orep in oreps] for Ok in Oks]
-    if(otype=='c' or otype=='s'):Oks=[[np.linalg.multi_dot([Uees[kid].conj().T,Ok,Uees[kqids[0,kid]]]) for Ok in Oks[kid]] for kid in range(Nk)]
-    elif(otype=='fe' or otype=='fo'):Oks=[[np.linalg.multi_dot([Uees[kid].conj().T,Ok,Uees[kqids[0,kid]].conj()]) for Ok in Oks[kid]] for kid in range(Nk)]
+    if(toeig):
+        if(otype=='c' or otype=='s'):Oks=[[np.linalg.multi_dot([Uees[kid].conj().T,Ok,Uees[kqids[0,kid]]]) for Ok in Oks[kid]] for kid in range(Nk)]
+        elif(otype=='fe' or otype=='fo'):Oks=[[np.linalg.multi_dot([Uees[kid].conj().T,Ok,Uees[kqids[0,kid]].conj()]) for Ok in Oks[kid]] for kid in range(Nk)]
 #    for kid in range(Nk):print('k =',ks[kid],', Ok =\n',Oks[kid])
     oks=[np.array([np.trace(Ok[nbds[0]*dgnm:(nbds[0]+1)*dgnm,nbds[1]*dgnm:(nbds[1]+1)*dgnm]) for Ok in Oks[kid]]) for kid in range(Nk)]
     okrs,okis=[ok.real for ok in oks],[ok.imag for ok in oks]
@@ -397,6 +406,57 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],n
     elif(tori=='i'):
         print('Print imaginary order.')
         oks=okis.tolist()
+    elif(tori=='a'):
+        print('Print absolute order.')
+        oks=[sqrt(okrs[nok]**2+okis[nok]**2) for nok in range(len(okrs))]
+    return oks
+
+
+def formfactor2(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],nbp=-1,tori='r',tobdg=False):
+    if(otype=='c' or otype=='s' or otype=='o'):
+        Pt=P
+        if(tobdg):Pt=bdg.bdgblock(P,0,0)
+        kpm=1
+    elif(otype=='fe' or otype=='fo'):
+        Pt=bdg.bdgblock(P,0,1)
+        kpm=-1
+    [Nr,Nfl]=Nrfl
+    Nk=len(ks)
+    '''
+    def fourierdenmat(kid):
+        print(kid)
+        ftidss=np.array([[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl),tb.stateid(rs[rid0][1],fl0,Nfl),tb.stateid(rs[rid1][1],fl1,Nfl)] for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)]).T
+        fts=np.array([(1./tb.statenum(Nrfl))*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1])) for rid0 in range(Nr) for fl0 in range(Nfl) for rid1 in range(Nr) for fl1 in range(Nfl)])
+        return sparse.COO(ftidss,fts,shape=(tb.statenum(Nrfl),tb.statenum(Nrfl),tb.statenum([ltc.slnum(ltype),Nfl]),tb.statenum([ltc.slnum(ltype),Nfl])))
+    Oks=np.array([sparse.tensordot(fourierdenmat(kid),Pt,axes=((0,1),(0,1)),return_type=np.ndarray) for kid in range(Nk)])
+    '''
+    Nruc=len(rucs)
+    Oks=[np.array([[sum([Pt[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(k,ltc.pos(rs[ridp[0]],ltype))+kpm*1.j*np.dot(k+q,ltc.pos(rs[ridp[0]],ltype)-RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for k in ks]
+    dgnm=1
+    # Representations.
+    if(otype=='c'):oreps=[np.identity(Nfl)]
+    elif(otype=='s'):oreps=[tb.paulimat(n) for n in [1,2,3]]
+    elif(otype=='fe'):
+        if(Nfl==1 or dgnm==1):oreps=[np.identity(1)]
+        elif(Nfl==2 and dgnm==2):oreps=[np.dot(tb.paulimat(n)/sqrt(2.),1.j*tb.paulimat(2)) for n in [1,2,3]]
+    elif(otype=='fo'):
+        if(Nfl==2 and dgnm==2):oreps=[np.dot(tb.paulimat(0)/sqrt(2.),1.j*tb.paulimat(2))]
+    Oks=[[np.dot(np.kron(np.identity(ltc.slnum(ltype)),orep),Ok) for orep in oreps] for Ok in Oks]
+    Ueess=[[np.linalg.eigh(Hk(k))[1],np.linalg.eigh(Hk(k+q))[1]] for k in ks]
+    if(otype=='c' or otype=='s'):Oks=[[np.linalg.multi_dot([Ueess[kid][0].conj().T,Ok,Ueess[kid][1]]) for Ok in Oks[kid]] for kid in range(Nk)]
+    elif(otype=='fe' or otype=='fo'):Oks=[[np.linalg.multi_dot([Ueess[kid][0].conj().T,Ok,Ueess[kid][1].conj()]) for Ok in Oks[kid]] for kid in range(Nk)]
+#    for kid in range(Nk):print('k =',ks[kid],', Ok =\n',Oks[kid])
+    oks=[np.array([np.trace(Ok[nbds[0]*dgnm:(nbds[0]+1)*dgnm,nbds[1]*dgnm:(nbds[1]+1)*dgnm]) for Ok in Oks[kid]]) for kid in range(Nk)]
+    okrs,okis=[ok.real for ok in oks],[ok.imag for ok in oks]
+    okrs,okis=np.array([okr[-1] for okr in okrs]),np.array([oki[-1] for oki in okis])
+    if(tori=='r'):
+        print('Print real order.')
+        oks=okrs.tolist()
+    elif(tori=='i'):
+        print('Print imaginary order.')
+        oks=okis.tolist()
+    elif(tori=='a'):
+        oks=[abs(ok)**2 for ok in oks]
     return oks
 
 

@@ -37,8 +37,20 @@ def denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg):
     if(Ptype=='pllt'):
         [tb.termmat(P,(1./2.)*dpe,rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(ltc.slnum(ltype)) for fl in range(Nfl)]
     # Charge nematicity
-    if(Ptype=='cn'):
+    elif(Ptype=='cn'):
         [tb.termmat(P,(1./2.)*dpe*np.sign((rs[rid][1]+1)%3),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+    # Charge density wave 2x2: m-
+    elif(Ptype=='cdw22mm'):
+        def scptb(r):
+            if(r[0][0]%2==1 and r[0][1]%2==1):return 1.
+            else:return 2.*((r[1]==((r[0][0]%2-r[0][1]%2)%3))-0.5)
+        [tb.termmat(P,(1./2.)*dpe*scptb(rs[rid]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+    # Charge density wave 2x2: m+
+    elif(Ptype=='cdw22mp'):
+        def scptb(r):
+            if(r[0][0]%2==1 and r[0][1]%2==1):return -1.
+            else:return -2.*((r[1]==((r[0][0]%2-r[0][1]%2)%3))-0.5)
+        [tb.termmat(P,(1./2.)*dpe*scptb(rs[rid]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
     # Quantum anomalous Hall insulator
     elif(Ptype=='qahi'):
         nb1ids=ltc.nthneighbors(1,NB)

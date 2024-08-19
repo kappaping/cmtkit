@@ -32,7 +32,7 @@ import bandtheory as bdth
 '''Plotting the bands'''
 
 
-def mapfs(H,ks,nf,ltype,prds,Nk,datatype='e',sn=np.array([0.,0.,1.]),tosetde=False,de=0.):
+def mapfs(H,ks,nf,ltype,prds,Nk,datatype='f',sn=np.array([0.,0.,1.]),tosetde=False,de=0.):
     '''
     Obtain the Fermi surface for a given filling
     '''
