@@ -380,7 +380,7 @@ def formfactor(P,Hk,ltype,rs,NB,RDV,Nrfl,rucs,RUCRP,ks,bzop,q,otype,nbds=[0,0],n
     Nruc=len(rucs)
     Nsl=ltc.slnum(ltype)
     r0c=sum([ltc.pos([np.array([0,0,0]),sl],ltype) for sl in range(Nsl)])/Nsl
-    Oks=[(1./tb.statenum(Nrfl))*sum([Pt[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl)]*(e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-r0c)+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-r0c)))*np.array([[(rs[rid0][1]==sl0 and rs[rid1][1]==sl1) for sl1 in range(Nsl) for fl1 in range(Nfl)] for sl0 in range(Nsl) for fl0 in range(Nfl)]) for rid1 in range(Nr) for fl1 in range(Nfl) for rid0 in range(Nr) for fl0 in range(Nfl)]) for kid in range(Nk)]
+    Oks=[(Nsl/tb.statenum(Nrfl))*sum([Pt[tb.stateid(rid0,fl0,Nfl),tb.stateid(rid1,fl1,Nfl)]*(e**(-1.j*np.dot(ks[kid],ltc.pos(rs[rid0],ltype)-r0c)+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[rid0],ltype)-RDV[rid0,rid1]-r0c)))*np.array([[(rs[rid0][1]==sl0 and rs[rid1][1]==sl1) for sl1 in range(Nsl) for fl1 in range(Nfl)] for sl0 in range(Nsl) for fl0 in range(Nfl)]) for rid1 in range(Nr) for fl1 in range(Nfl) for rid0 in range(Nr) for fl0 in range(Nfl)]) for kid in range(Nk)]
 #    Oks=[np.array([[sum([Pt[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(ks[kid],ltc.pos(rs[ridp[0]],ltype))+kpm*1.j*np.dot(ks[kqids[0,kid]],ltc.pos(rs[ridp[0]],ltype)-RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for kid in range(Nk)]
     # Eigenstates.
     Uees,dgnm=symmeigenstates(Hk,ks,q,kqids[0],Nfl,ltype,otype)
