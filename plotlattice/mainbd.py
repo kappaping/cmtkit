@@ -41,7 +41,7 @@ rucs,RUCRP=bdth.ftsites(ltype,rs,prds)
 
 # Get the momentum-space Hamiltonian.
 Hk=lambda k:bdth.ftham(k,H,Nrfl,RDV,rucs,RUCRP)
-Nk=50
+Nk=60
 
 filetfig='../../figs/hartreefock/testbd.pdf'
 tosave=True

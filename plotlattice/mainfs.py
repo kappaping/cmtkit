@@ -18,46 +18,48 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='tr'
-Nbl=[4,4,1]
+ltype='ka'
+Nbl=[2,2,1]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
-NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc)
+filet='../../data/lattice/square/16161_bc_1'
+NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
 # Flavor and state.
-Nfl=2
+Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=3./4.-1./8.
+nf=5./12.
+# Whether to adopt the Bogoliubov-de Gennes form.
+tobdg=False
 
 # Tight-binding Hamiltonian.
-ts=[0.,-1.,0.6]
+ts=[0.,-1.]
 H=tb.tbham(ts,NB,Nfl)
 
-sys.stdout.flush()
-
+# Set the unit cell with periodicity prds.
 prds=[1,1,1]
 rucs,RUCRP=bdth.ftsites(ltype,rs,prds)
 
-Hk=lambda k:bdth.ftham(k,H,Nrfl,RDV,rucs,RUCRP)
-Nk=100
+# Get the momentum-space Hamiltonian.
+Hk=lambda k:bdth.ftham(k,H,Nrfl,RDV,rucs,RUCRP,tobdg=tobdg)
+
+Nk=60
 
 bzop=False
 ks,dks=bz.listbz(ltype,prds,Nk,bzop)
 
 todata=True
-datatype='s'
 tosetde=True
-de=0.05
-dataks=plbd.mapfs(Hk,nf,ltype,prds,Nk,datatype=datatype,tosetde=tosetde,de=de)
-nbd=3
-#dataks=plbd.mapband(Hk,nbd,ltype,prds,Nk)
+de=0.01
+kps,data=plbd.mapfs(Hk,ks,nf,ltype,prds,Nk,tosetde=tosetde,de=de)
 
+toclmax=False
 filetfig='../../figs/hartreefock/testfs.pdf'
-#filetfig='../../figs/hartreefock/testbdbz.pdf'
 tosave=True
-tolabel=False
-plbd.plotbz(ltype,prds,todata,dataks,tolabel=tolabel,tosave=tosave,filetfig=filetfig)
+tolabel=True
+plbd.plotbz(ltype,prds,kps,todata=todata,data=data,ptype='gd',dks=dks,bzop=bzop,toclmax=toclmax,tolabel=tolabel,tosave=tosave,filetfig=filetfig)
+
 
 
 
