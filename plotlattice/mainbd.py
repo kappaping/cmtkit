@@ -46,13 +46,18 @@ Nk=60
 filetfig='../../figs/hartreefock/testbd.pdf'
 tosave=True
 tosetmu=False
-plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosetmu=tosetmu,mu=mu,tosave=tosave,filetfig=filetfig)
+#plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosetmu=tosetmu,mu=mu,tosave=tosave,filetfig=filetfig)
 
 hsks=bz.hskpoints(ltype,prds)
 for hsk in hsks:
     print('hsk =',hsk)
     ees,eevs=np.linalg.eigh(Hk(hsk[1]))
     print('ees =',ees,', eevs =',eevs.conj().T)
+
+mm=(hsks[1][1]-hsks[2][1])/2.
+print('k =',mm)
+ees,eevs=np.linalg.eigh(Hk(mm))
+print('ees =',ees,', eevs =',eevs.conj().T)
 
 
 
