@@ -274,6 +274,11 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
 #        segments=[[hskls[2][1],np.dot(Rotation.from_rotvec((2*pi/4)*x0n).as_matrix(),hskls[2][1])]]
 #        lc2=Line3DCollection(segments,color='k',linewidth=2,zorder=3)
 #        ax.add_collection(lc2)
+    mts=bz.hskpoints(ltype,prds)
+    mts=[m[1][0:2] for m in [mts[1],mts[2],mts[3]]]
+    ms=[mts[0],-mts[2],mts[1],-mts[0],mts[2],-mts[1]]
+    plg=Polygon(ms,facecolor='none',edgecolor='g',linewidth=2,linestyle='--')
+    ax.add_patch(plg)
     # High-symmetry points to label.
     if(tolabel and (bztype=='rc' or bztype=='hx')):
         hsklxs,hsklys=[[hsk[1][n] for hsk in hskls] for n in range(2)]
