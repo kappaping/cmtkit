@@ -224,7 +224,7 @@ def pairorbital(P,rid0,rid1,Nfl,tobdg=False):
     return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0),(1./2.)*omats[n])) for n in range(3)])
 
 
-def chargeorder(P,nb1ids,Nrfl,tobdg=False):
+def chargeorder(P,nb1ids,Nrfl,toschavg=True,tobdg=False):
     '''
     Compute the charge order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
@@ -232,7 +232,7 @@ def chargeorder(P,nb1ids,Nrfl,tobdg=False):
     schs=[paircharge(P,rid,rid,Nrfl[1],tobdg).real for rid in range(Nrfl[0])]
     # Extract the order as the deviation from the average
     schsavg=sum(schs)/len(schs)
-    schs=[sch-schsavg for sch in schs]
+    if(toschavg):schs=[sch-schsavg for sch in schs]
     schsa=[abs(sch) for sch in schs]
     schsmax=max(schsa)
     # Bond order

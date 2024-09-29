@@ -165,14 +165,14 @@ def plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig,otype='l',os=[[],[],[]],
 '''Plot the orders'''
 
 
-def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],scl=1.,res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,dist=None,filetfig=[],tobdg=False):
+def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,toschavg=True,rpls=[],scl=1.,res=10,dpi=300,to3d=True,show3d=True,plaz=0.,plel=0.,dist=None,filetfig=[],tobdg=False):
     '''
     Plot the orders.
     '''
     # Find out the first-neighbor pairs.
     nb1ids=ltc.nthneighbors(1,NB)
     # Compute the charge orders.
-    chs=dm.chargeorder(P,nb1ids,Nrfl,tobdg)
+    chs=dm.chargeorder(P,nb1ids,Nrfl,toschavg=toschavg,tobdg=tobdg)
     print('charge order')
     print('site order max = ',chs[1][0],', site order average = ',sum(chs[0][0])/len(chs[0][0]))
     print('real bond order max = ',chs[1][1],', real bond order average = ',sum(chs[0][1])/len(chs[0][1]))
