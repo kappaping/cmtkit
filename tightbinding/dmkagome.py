@@ -59,6 +59,9 @@ def denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg):
     # Ferromagnetism
     elif(Ptype=='fm'):
         [tb.termmat(P,(1./2.)*dpe*(0.5-fl),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+    # 120 AFM
+    elif(Ptype=='120afm'):
+        [tb.setpairpm(P,dpe*np.array([0.]+np.dot(Rotation.from_rotvec((2*pi)*(1/6)*np.array([1,0,0])).as_matrix(),np.array([cos(rs[rid][1]*2.*pi/3),0.,sin(rs[rid][1]*2.*pi/3)])).tolist()),rid,rid,Nfl) for rid in range(Nr)]
     # p-wave sc
     elif(Ptype=='psc'):
         ds=[np.dot(Rotation.from_rotvec((2*pi)*(nd/6)*np.array([0,0,1])).as_matrix(),ltc.blvecs(ltype)[0]) for nd in range(6)]
