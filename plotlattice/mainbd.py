@@ -32,7 +32,7 @@ nf=5./12.*(1.+(0./8.))
 mu=0.
 
 # Tight-binding Hamiltonian.
-ts=[0.,-1.]
+ts=[0.,-1.,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1]
 H=tb.tbham(ts,NB,Nfl)
 
 # Set the unit cell with periodicity prds.
@@ -52,12 +52,8 @@ hsks=bz.hskpoints(ltype,prds)
 for hsk in hsks:
     print('hsk =',hsk)
     ees,eevs=np.linalg.eigh(Hk(hsk[1]))
-    print('ees =',ees,', eevs =',eevs.conj().T)
+    print('ees =',ees,', eevs =',eevs.conj().T.round(10))
 
-mm=(hsks[1][1]-hsks[2][1])/2.
-print('k =',mm)
-ees,eevs=np.linalg.eigh(Hk(mm))
-print('ees =',ees,', eevs =',eevs.conj().T)
 
 
 
