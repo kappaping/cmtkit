@@ -224,30 +224,29 @@ def pairorbital(P,rid0,rid1,Nfl,tobdg=False):
     return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0),(1./2.)*omats[n])) for n in range(3)])
 
 
-def chargeorder(P,nb1ids,Nrfl,toschavg=True,tobdg=False):
+def orders(P,nbidss,Nrfl,odtype='c',tobdg=False):
     '''
     Compute the charge order of the whole lattice. Return the lists of the site and bond orders and their maximal values.
     '''
-    # Site order
-    schs=[paircharge(P,rid,rid,Nrfl[1],tobdg).real for rid in range(Nrfl[0])]
+    # Order type
+    if(odtype=='c'):
+        def odf(P,id0,id1,Nfl,tobdg):return paircharge(P,id0,id1,Nfl,tobdg)
+    elif(odtype=='s'):
+        def odf(P,id0,id1,Nfl,tobdg):return pairspin(P,id0,id1,Nfl,tobdg)
+    # Orders at all considered neighbors
+    odss=[[odf(P,pair[0],pair[1],Nrfl[1],tobdg) for pair in nbids] for nbids in nbidss]
     # Extract the order as the deviation from the average
-    schsavg=sum(schs)/len(schs)
-    if(toschavg):schs=[sch-schsavg for sch in schs]
-    schsa=[abs(sch) for sch in schs]
-    schsmax=max(schsa)
-    # Bond order
-    bchs=[paircharge(P,pair[0],pair[1],Nrfl[1],tobdg) for pair in nb1ids]
-    # Extract the order as the deviation from the average
-    bchsavg=sum(bchs)/len(bchs)
-    bchs=[bch-bchsavg for bch in bchs]
-    # Distinguish the real and imaginary bonds
-    bchsr=[bch.real for bch in bchs]
-    bchsra=[abs(bchr) for bchr in bchsr]
-    bchsi=[bch.imag for bch in bchs]
-    bchsia=[abs(bchi) for bchi in bchsi]
-    bchsrmax,bchsimax=max(bchsra),max(bchsia)
+    if(odtype=='c'):
+        odavgs=[sum(ods)/len(ods) for ods in odss]
+        odss=[[od-odavgs[nods] for od in odss[nods]] for nods in range(len(odss))]
+    # Distinguish the real and imaginary orders
+    odrss,odiss=[[od.real for od in ods] for ods in odss],[[od.imag for od in ods] for ods in odss]
+    if(odtype=='c'):
+        odramaxs,odiamaxs=[np.max(np.abs(odrs)) for odrs in odrss],[np.max(np.abs(odis)) for odis in odiss]
+    elif(odtype=='s'):
+        odramaxs,odiamaxs=[np.max(np.array([np.linalg.norm(odr) for odr in odrs])) for odrs in odrss],[np.max(np.array([np.linalg.norm(odi) for odi in odis])) for odis in odiss]
 
-    return [[schs,bchsr,bchsi],[schsmax,bchsrmax,bchsimax]]
+    return [[odrss,odiss],[odramaxs,odiamaxs]]
 
 
 def spinorder(P,nb1ids,Nrfl,tobdg=False):

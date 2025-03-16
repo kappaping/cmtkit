@@ -39,6 +39,12 @@ def denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg):
     # Antiferromagnetism
     elif(Ptypet=='afm'):
         [tb.termmat(P,(1./2.)*dpe*(0.5-fl)*(0.5-rs[rid][1]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+    # Antiferromagnetism2d
+    elif(Ptypet=='afm2d'):
+        [tb.setpairpm(P,dpe*((-1)**rs[rid][1])*np.array([0,np.sin(pi/5)*np.cos(7*pi/6),np.sin(pi/5)*np.sin(7*pi/6),np.cos(pi/5)]),rid,rid,Nfl) for rid in range(Nr) for fl in range(Nfl)]
+    # Antiferromagnetism2d
+    elif(Ptypet=='afm3d'):
+        [tb.setpairpm(P,dpe*((-1)**rs[rid][1])*np.array([0,np.sin(pi/5)*np.cos(7*pi/6),np.sin(pi/5)*np.sin(7*pi/6),np.cos(pi/5)]),rid,rid,Nfl) for rid in range(Nr) for fl in range(Nfl)]
     # Ferromagnetism + charge-density modulation
     elif(Ptypet=='fmcdm0'):
         [tb.termmat(P,(1./2.)*dpe*((0.5-fl)+(0.5-rs[rid][1])),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]

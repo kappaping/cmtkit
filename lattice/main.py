@@ -9,12 +9,12 @@ import joblib
 import lattice as ltc
 
 
-ltype='ka'
-Nbl=[16,16,1]
+ltype='ch3d'
+Nbl=[8,8,8]
 rs=ltc.ltcsites(ltype,Nbl)[0]
 bc=1
 
-filet='../../data/lattice/kagome/16161_bc_1'
+filet='../../data/lattice/checkerboard3d/888_bc_1'
 
 NB,RD,RDV=ltc.ltcpairdist(ltype,rs,Nbl,bc,toread=False,filet=filet)
 print(NB)

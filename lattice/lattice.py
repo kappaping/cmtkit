@@ -18,6 +18,7 @@ import triangular
 import honeycomb
 import kagome
 import simplecubic
+import checkerboard3d
 import bodycenteredcubic0
 import facecenteredcubic0
 import facecenteredcubic
@@ -46,6 +47,7 @@ def ltcname(ltype):
     elif(ltype=='ho'):return honeycomb.ltcname()
     elif(ltype=='ka'):return kagome.ltcname()
     elif(ltype=='sc'):return simplecubic.ltcname()
+    elif(ltype=='ch3d'):return checkerboard3d.ltcname()
     elif(ltype=='bcc0'):return bodycenteredcubic0.ltcname()
     elif(ltype=='fcc0'):return facecenteredcubic0.ltcname()
     elif(ltype=='fcc'):return facecenteredcubic.ltcname()
@@ -69,6 +71,7 @@ def blvecs(ltype):
     elif(ltype=='ho'):return honeycomb.blvecs()
     elif(ltype=='ka'):return kagome.blvecs()
     elif(ltype=='sc'):return simplecubic.blvecs()
+    elif(ltype=='ch3d'):return checkerboard3d.blvecs()
     elif(ltype=='bcc0'):return bodycenteredcubic0.blvecs()
     elif(ltype=='fcc0'):return facecenteredcubic0.blvecs()
     elif(ltype=='fcc'):return facecenteredcubic.blvecs()
@@ -92,6 +95,7 @@ def slvecs(ltype):
     elif(ltype=='ho'):return honeycomb.slvecs()
     elif(ltype=='ka'):return kagome.slvecs()
     elif(ltype=='sc'):return simplecubic.slvecs()
+    elif(ltype=='ch3d'):return checkerboard3d.slvecs()
     elif(ltype=='bcc0'):return bodycenteredcubic0.slvecs()
     elif(ltype=='fcc0'):return facecenteredcubic0.slvecs()
     elif(ltype=='fcc'):return facecenteredcubic.slvecs()

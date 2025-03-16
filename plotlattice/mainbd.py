@@ -17,8 +17,8 @@ import plotband as plbd
 
 
 # Lattice structure.
-ltype='ka'
-Nbl=[2,2,1]
+ltype='py'
+Nbl=[2,2,2]
 rs,Nr=ltc.ltcsites(ltype,Nbl)
 bc=1
 filet='../../data/lattice/diamond/888_bc_1'
@@ -28,11 +28,11 @@ Nfl=1
 Nrfl=[Nr,Nfl]
 Nst=tb.statenum(Nrfl)
 # Filling fraction of each state.
-nf=5./12.*(1.+(0./8.))
-mu=0.
+nf=1./2.
+mu=1.999
 
 # Tight-binding Hamiltonian.
-ts=[0.,-1.,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1]
+ts=[0.,-1.]
 H=tb.tbham(ts,NB,Nfl)
 
 # Set the unit cell with periodicity prds.
@@ -41,12 +41,12 @@ rucs,RUCRP=bdth.ftsites(ltype,rs,prds)
 
 # Get the momentum-space Hamiltonian.
 Hk=lambda k:bdth.ftham(k,H,Nrfl,RDV,rucs,RUCRP)
-Nk=60
+Nk=48
 
 filetfig='../../figs/hartreefock/testbd.pdf'
 tosave=True
-tosetmu=False
-#plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosetmu=tosetmu,mu=mu,tosave=tosave,filetfig=filetfig)
+tosetmu=True
+plbd.plotbandcontour(Hk,ltype,prds,Nfl,Nk,nf,tosetmu=tosetmu,mu=mu,tosave=tosave,filetfig=filetfig)
 
 hsks=bz.hskpoints(ltype,prds)
 for hsk in hsks:

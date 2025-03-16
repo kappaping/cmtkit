@@ -104,15 +104,29 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',sn=np.array([0.,0.,1.]),toend=True
                         ndg=1
                     else:ndg+=1
                     nb+=1
+        elif(datatype=='sl'):
+            datascs=np.array([[np.linalg.multi_dot([u,np.kron(tb.paulimat(3),np.identity(2)),u.conj().T]).real for u in usc] for usc in uscs]).T
+            for nk in range(len(kscs)):
+                nb=0
+                ndg=1
+                while nb<len(eescs):
+                    if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-12):
+                        dataavg=sum([datascs[nb-n,nk] for n in range(ndg)])/ndg
+                        for n in range(ndg):
+                            datascs[nb-n,nk]=dataavg
+                        ndg=1
+                    else:ndg+=1
+                    nb+=1
     return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False,yticks=[],cmapt='coolwarm',cmapdarker=1.,cmapmax=1.):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
     # Obtain the high-symmetry points.
     hsks=bz.hskcontour(ltype,prds,cttype)
+    print(hsks)
     # Obtain the number of bands.
     Nbd=np.shape(H(hsks[0][1]))[0]
     # Determine the chemical potential mu that shows the filling. If no showing the filling, let nf=0 to plot all bands in blue.
@@ -149,7 +163,17 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmi
         eemins=eemins+[np.min(eescs)]
     # Determine the colors of the data.
     damax=max(0.001,np.max(abs(datas)))
-    cmap=matplotlib.cm.get_cmap('coolwarm')
+    cmap=matplotlib.cm.get_cmap(cmapt)
+    if(cmapdarker<1.):
+        def darken_cmap(cmap, factor=cmapdarker):
+            new_cmap = matplotlib.colors.LinearSegmentedColormap.from_list("dark_" + cmap.name,[(r*factor,g*factor,b*factor) for r,g,b,_ in cmap(np.linspace(0,1,256))])
+            return new_cmap
+        cmap=darken_cmap(cmap,factor=cmapdarker)
+    if(cmapmax<1.):
+        def newrange_cmap(cmap,cmapmax=cmapmax):
+            new_cmap=matplotlib.colors.LinearSegmentedColormap.from_list("newmax_"+cmap.name,[cmap(0.5+cmapmax*(x-0.5)) for x in np.linspace(0,1,256)])
+            return new_cmap
+        cmap=newrange_cmap(cmap,cmapmax=cmapmax)
     norm=matplotlib.colors.Normalize(vmin=-damax,vmax=damax)
     def bandsegmentcolor(data0,data1,mu,datatype):
         # Determine the colors of a band segment [ee0,ee1].
@@ -173,10 +197,11 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmi
         plt.gca().add_collection(lc)
         plt.gca().autoscale()
     # Set the ticks of the x axis as the high-symmetry points.
-    [plt.axvline(x=hsk,color='k') for hsk in kts[1:-1]]
+    [plt.axvline(x=hsk,color='k',linewidth=0.9) for hsk in kts[1:-1]]
     plt.axhline(y=mu,color='k',linestyle='--')
     plt.xlim(kts[0],kts[-1])
     plt.xticks(ticks=kts,labels=ktlbs)
+    if(len(yticks)>0):plt.yticks(ticks=yticks)
     # Set the y axis.
     plt.ylabel('$E_k$')
     # Zoom in.
@@ -194,7 +219,7 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmi
     plt.show()
 
 
-def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclmax=False,bzvol=1.,tolabel=False,tosave=False,filetfig=''):
+def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclmax=False,bzvol=1.,tolabel=False,tosave=False,filetfig='',cmapt='coolwarm',cmapdarker=1.,cmapmax=1.,torevcmap=False):
     '''
     Draw the Brillouin zone.
     '''
@@ -274,39 +299,6 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
 #        segments=[[hskls[2][1],np.dot(Rotation.from_rotvec((2*pi/4)*x0n).as_matrix(),hskls[2][1])]]
 #        lc2=Line3DCollection(segments,color='k',linewidth=2,zorder=3)
 #        ax.add_collection(lc2)
-    mts=bz.hskpoints(ltype,prds)
-    mts=[m[1][0:2] for m in [mts[1],mts[2],mts[3]]]
-    ms=[mts[0],-mts[2],mts[1],-mts[0],mts[2],-mts[1]]
-    plg=Polygon(ms,facecolor='none',edgecolor='g',linewidth=2,linestyle='--')
-    ax.add_patch(plg)
-    # High-symmetry points to label.
-    if(tolabel and (bztype=='rc' or bztype=='hx')):
-        hsklxs,hsklys=[[hsk[1][n] for hsk in hskls] for n in range(2)]
-        hsklts=[1.1*hsk[1] for hsk in hskls]
-        hsklts[0]-=(0.2*hsklts[-2])
-        hskltxs,hskltys=[[hsklt[n] for hsklt in hsklts] for n in range(2)]
-        [plt.text(hskltxs[n],hskltys[n],hskls[n][0],color='r') for n in range(len(hskls))]
-        plt.scatter(hsklxs,hsklys,c='r')
-    elif(tolabel and bztype=='sc'):
-        hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
-        hsklts=[1.1*hsk[1] for hsk in hskls]
-        hsklts[0]+=np.array([-0.5,0.,0.])
-        hsklts[1]+=np.array([0.,0.,0.])
-        hsklts[2]+=np.array([-0.1,0.,0.])
-        hsklts[3]+=np.array([-0.2,0.,-0.1])
-        hskltxs,hskltys,hskltzs=[[hsklt[n] for hsklt in hsklts] for n in range(3)]
-        [ax.text(hskltxs[n],hskltys[n],hskltzs[n],hskls[n][0],color='r',zorder=4) for n in range(len(hskls))]
-        ax.scatter(hsklxs,hsklys,hsklzs,c='r',zorder=10)
-    elif(tolabel and bztype=='bcc'):
-        hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
-        hsklts=[1.1*hsk[1] for hsk in hskls]
-        hsklts[0]+=np.array([-0.3,-0.3,0.1])
-        hsklts[1]+=np.array([-0.3,-0.3,-0.4])
-        hsklts[2]+=np.array([-0.6,-0.3,0.])
-        hsklts[3]+=np.array([-0.2,-0.6,0.4])
-        hskltxs,hskltys,hskltzs=[[hsklt[n] for hsklt in hsklts] for n in range(3)]
-        [ax.text(hskltxs[n],hskltys[n],hskltzs[n],hskls[n][0],color='r',zorder=4) for n in range(len(hskls))]
-        ax.scatter(hsklxs,hsklys,hsklzs,c='r',zorder=10)
     # If there is data to present, map it out.
     if(todata):
         if(len(data)==0):data=len(ks)*[0.]
@@ -338,7 +330,22 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
                             else:kctst+=[(kcts[nkct]+kcts[(nkct+Nsdp)%Nkct])/2.]
                     kctss[nkcts]=kctst
             kctss=[np.array(kcts)[:,0:2] for kcts in kctss]
-            cmap=matplotlib.cm.get_cmap('coolwarm')
+            cmap=matplotlib.cm.get_cmap(cmapt)
+            if(cmapdarker<1.):
+                def darken_cmap(cmap, factor=cmapdarker):
+                    new_cmap = matplotlib.colors.LinearSegmentedColormap.from_list("dark_" + cmap.name,[(r*factor,g*factor,b*factor) for r,g,b,_ in cmap(np.linspace(0,1,256))])
+                    return new_cmap
+                cmap=darken_cmap(cmap,factor=cmapdarker)
+            if(cmapmax<1.):
+                def newrange_cmap(cmap,cmapmax=cmapmax):
+                    new_cmap=matplotlib.colors.LinearSegmentedColormap.from_list("newmax_"+cmap.name,[cmap(0.5+cmapmax*(x-0.5)) for x in np.linspace(0,1,256)])
+                    return new_cmap
+                cmap=newrange_cmap(cmap,cmapmax=cmapmax)
+            if(torevcmap):
+                def rev_cmap(cmap):
+                    new_cmap=matplotlib.colors.LinearSegmentedColormap.from_list("rev_"+cmap.name,[cmap(1-x) for x in np.linspace(0,1,256)])
+                    return new_cmap
+                cmap=rev_cmap(cmap)
             if(toclmax):camax=np.max(np.abs(np.array(data)))
             else:camax=max(np.max(np.abs(np.array(data))),1./bzvol)
             norm=matplotlib.colors.Normalize(vmin=-camax,vmax=camax)
@@ -349,6 +356,48 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
             if(bzop==False):
                 plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
                 ax.add_patch(plg)
+        elif(ptype=='sm'):
+            Nsdp=round(len(bzcs)/2)
+            # Get the edge centers of the Brillouin zone.
+            if(bztype in ['rc','hx']):kecs=[np.array(((bzcs[nbzc]+bzcs[nbzc+1])/2.).tolist()+[0.]) for nbzc in range(Nsdp)]
+            # Mask the discrete momenta and the data for the Brillouin zone.
+            K0s,K1s=ks
+            Nks=len(K0s)
+            mask=np.array([[bz.inbz(np.array([K0s[nk0,nk1],K1s[nk0,nk1],0.]),kecs,Nsdp,bzop=False)==False for nk1 in range(Nks)] for nk0 in range(Nks)])
+            data_masked=np.ma.masked_where(mask,data)
+            # Draw the smooth data plot.
+            ax.pcolormesh(K0s,K1s,data_masked,shading='auto',cmap='coolwarm')
+            # Draw the Brillouin-zone edges again.
+            plg=Polygon(bzcs,facecolor='none',edgecolor='k',linewidth=3)
+            ax.add_patch(plg)
+    # High-symmetry points to label.
+    if(tolabel and (bztype=='rc' or bztype=='hx')):
+        hsklxs,hsklys=[[hsk[1][n] for hsk in hskls] for n in range(2)]
+        hsklts=[1.1*hsk[1] for hsk in hskls]
+        hsklts[0]-=(0.2*hsklts[-2])
+        hskltxs,hskltys=[[hsklt[n] for hsklt in hsklts] for n in range(2)]
+        [plt.text(hskltxs[n],hskltys[n],hskls[n][0],color='k') for n in range(len(hskls))]
+        plt.scatter(hsklxs,hsklys,c='k')
+    elif(tolabel and bztype=='sc'):
+        hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
+        hsklts=[1.1*hsk[1] for hsk in hskls]
+        hsklts[0]+=np.array([-0.5,0.,0.])
+        hsklts[1]+=np.array([0.,0.,0.])
+        hsklts[2]+=np.array([-0.1,0.,0.])
+        hsklts[3]+=np.array([-0.2,0.,-0.1])
+        hskltxs,hskltys,hskltzs=[[hsklt[n] for hsklt in hsklts] for n in range(3)]
+        [ax.text(hskltxs[n],hskltys[n],hskltzs[n],hskls[n][0],color='k',zorder=4) for n in range(len(hskls))]
+        ax.scatter(hsklxs,hsklys,hsklzs,c='k',zorder=4)
+    elif(tolabel and bztype=='bcc'):
+        hsklxs,hsklys,hsklzs=[[hsk[1][n] for hsk in hskls] for n in range(3)]
+        hsklts=[1.1*hsk[1] for hsk in hskls]
+        hsklts[0]+=np.array([-0.3,-0.3,0.1])
+        hsklts[1]+=np.array([-0.3,-0.3,-0.4])
+        hsklts[2]+=np.array([-0.6,-0.3,0.])
+        hsklts[3]+=np.array([-0.2,-0.6,0.4])
+        hskltxs,hskltys,hskltzs=[[hsklt[n] for hsklt in hsklts] for n in range(3)]
+        [ax.text(hskltxs[n],hskltys[n],hskltzs[n],hskls[n][0],color='k',zorder=4) for n in range(len(hskls))]
+        ax.scatter(hsklxs,hsklys,hsklzs,c='k',zorder=4)
     ax=plt.gca()
     lim=np.max(np.abs(np.array(bzcs)))*1.1
     ax.set_xlim([-lim,lim])

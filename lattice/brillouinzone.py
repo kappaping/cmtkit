@@ -26,10 +26,10 @@ def typeofbz(ltype,prds):
     if((ltype in ['sq','ch','li']) or (prds[0]>1 and prds[1]==1) or (prds[0]==1 and prds[1]>1)):return 'rc'
     # Hexagonal Brillouin zone.
     elif(ltype in ['tr','ho','ka']):return 'hx'
-    # Body-centered-cubic Brillouin zone.
+    # Simple-cubic Brillouin zone.
     elif(ltype in ['sc','bcc0','fcc0']):return 'sc'
     # Body-centered-cubic Brillouin zone.
-    elif(ltype in ['fcc','dia','py']):return 'bcc'
+    elif(ltype in ['ch3d','fcc','dia','py']):return 'bcc'
 
 
 def ucblvecs(ltype,prds):
@@ -107,13 +107,21 @@ def hskcontour(ltype,prds,cttype='s'):
     # Contour of rectangular Brillouin zone.
     elif(bztype=='rc'):
         if(abs(np.linalg.norm(hsks[1][1])-np.linalg.norm(hsks[2][1]))<1e-14 and cttype=='s'):return [hsks[0],hsks[1],hsks[3],hsks[0]]
-        else:return [hsks[0],hsks[1],hsks[3],hsks[0],hsks[2],hsks[4],hsks[0]]
+#        else:return [hsks[0],hsks[1],hsks[3],hsks[0],hsks[2],hsks[4],hsks[0]]
+        elif(cttype=='pm'):return [hsks[0],hsks[1],hsks[3],hsks[0],['-'+hsks[1][0],-hsks[1][1]],['-'+hsks[3][0],-hsks[3][1]],hsks[0]]
     # Contour of hexagonal Brillouin zone.
-    elif(bztype=='hx'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0]]
+    elif(bztype=='hx'):
+        if(cttype=='s'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0]]
+        elif(cttype=='pm'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0],['-'+hsks[1][0],-hsks[1][1]],[' -'+hsks[5][0],hsks[5][1]],hsks[0]]
     # Contour of body-centered-cubic Brillouin zone.
-    elif(bztype=='sc'):return [hsks[0],hsks[1],hsks[4],hsks[5],hsks[0]]
+    elif(bztype=='sc'):
+        if(cttype=='s'):return [hsks[0],hsks[1],hsks[4],hsks[5],hsks[0]]
+        elif(cttype=='pm'):return [hsks[0],hsks[1],hsks[4],hsks[5],hsks[0],['-'+hsks[1][0],-hsks[1][1]],[' -'+hsks[4][0],-hsks[4][1]],['  -'+hsks[5][0],-hsks[5][1]],hsks[0]]
     # Contour of body-centered-cubic Brillouin zone.
-    elif(bztype=='bcc'):return [hsks[0],[hsks[2][0],-hsks[2][1]],[hsks[8][0],hsks[6][1]+(1./2.)*hsks[7][1]],hsks[6],hsks[0]]
+    elif(bztype=='bcc'):
+#        if(cttype=='s'):return [hsks[0],[hsks[2][0],-hsks[2][1]],[hsks[8][0],hsks[6][1]+(1./2.)*hsks[7][1]],[hsks[10][0],((hsks[6][1]+(1./2.)*hsks[7][1])+(hsks[6][1]+(1./2.)*hsks[5][1]))/2.],hsks[6],hsks[0]]
+        if(cttype=='s'):return [hsks[0],[hsks[2][0],-hsks[2][1]],[hsks[8][0],hsks[6][1]+(1./2.)*hsks[7][1]],hsks[6],hsks[0]]
+        elif(cttype=='pm'):return [hsks[0],[hsks[2][0],-hsks[2][1]],[hsks[8][0],hsks[6][1]+(1./2.)*hsks[7][1]],hsks[6],hsks[0],['-'+hsks[2][0],hsks[2][1]],['-'+hsks[8][0],-(hsks[6][1]+(1./2.)*hsks[7][1])],['  -'+hsks[6][0],-hsks[6][1]],hsks[0]]
 
 
 def inbz(k,kecs,Nsdp,bzop=False):
