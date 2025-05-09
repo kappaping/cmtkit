@@ -15,4 +15,6 @@ The main features of my library include:
 
 This figure of altermagnetism ([arXiv:2503.09602](https://arxiv.org/abs/2503.09602)) demonstrates the computational and graphical capabilities in my package. The upper figures show (left) the Haldane model with charge currents on the honeycomb lattice, as well as (right) its altermagnetic ground state under repulsive interaction obtained by the Hartree-Fock theory. The lower figures show (left) the band structures with spin splitting and (right) the splitting energy map of the lower two occupied bands in the Brillouin zone.
 
-<img src="almslc.png" alt="ALM" width="600">
+<div align="center">
+  <img src="almslc.png" alt="ALM" width="600">
+</div>
