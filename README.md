@@ -9,7 +9,7 @@ The main features of my library include:
     - Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory [[Paper]](https://arxiv.org/abs/2411.10447)
     - Beyond mean field: Functional renormalization group (RG) [[Reference]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.106.125141)
     - Classical Monte Carlo: Spin systems
-4. Tensor network methods:
+4. Tensor network methods for strongly correlated quantum systems:
     - Essential tools for tensor networks, including a direct contraction of arbitrary diagrams
     - Multiscale entanglement renormalization ansatz (MERA) [[Reference]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.79.144108)
 5. 3D visualization of lattices and superconducting/spin/charge ordered states [[Paper]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.110.L041121)
