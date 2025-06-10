@@ -9,7 +9,10 @@ The main features of my library include:
   (2) Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory
   (3) Beyond mean field: Functional renormalization group (RG), parquet RG
   (4) Classical Monte Carlo: Spin systems
-4. 3D visualization of lattices and superconducting/spin/charge ordered states
+4. Tensor network methods:
+  (1) Tools for tensor networks, including a direct contraction of arbitrary diagrams.
+  (2) Multiscale entanglement renormalization ansatz (MERA)
+5. 3D visualization of lattices and superconducting/spin/charge ordered states
 
 
 ## Demo: Altermagnetism on a honeycomb lattice
