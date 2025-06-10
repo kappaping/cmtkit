@@ -3,16 +3,16 @@ Since I started my postdoctoral stint at UC Berkeley, a significant portion of m
 
 The main features of my library include:
 1. Public repository on GitHub: https://github.com/kappaping/cmt_code
-2. Wide applicability on arbitrary 1D to 3D lattices and Fermi-Hubbard models
+2. Wide applicability on arbitrary 1D to 3D lattices and Fermi-Hubbard models [[Paper]](https://arxiv.org/abs/2406.02671)
 3. Computation of band structures and superconducting/spin/charge ordered states:
-    - Mean field: Hartree-Fock(-Bogoliubov) theory
-    - Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory
-    - Beyond mean field: Functional renormalization group (RG), parquet RG
+    - Mean field: Hartree-Fock(-Bogoliubov) theory [[Paper]](https://arxiv.org/abs/2503.09602)
+    - Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory [[Paper]](https://arxiv.org/abs/2411.10447)
+    - Beyond mean field: Functional renormalization group (RG) [[Reference]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.106.125141)
     - Classical Monte Carlo: Spin systems
 4. Tensor network methods:
-    - Tools for tensor networks, including a direct contraction of arbitrary diagrams.
+    - Essential tools for tensor networks, including a direct contraction of arbitrary diagrams
     - Multiscale entanglement renormalization ansatz (MERA) [[Reference]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.79.144108)
-5. 3D visualization of lattices and superconducting/spin/charge ordered states
+5. 3D visualization of lattices and superconducting/spin/charge ordered states [[Paper]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.110.L041121)
 
 
 ## Demo: Altermagnetism on a honeycomb lattice
