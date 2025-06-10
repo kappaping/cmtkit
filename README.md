@@ -5,13 +5,13 @@ The main features of my library include:
 1. Public repository on GitHub: https://github.com/kappaping/cmt_code
 2. Wide applicability on arbitrary 1D to 3D lattices and Fermi-Hubbard models
 3. Computation of band structures and superconducting/spin/charge ordered states:
-  - Mean field: Hartree-Fock(-Bogoliubov) theory
-  - Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory
-  - Beyond mean field: Functional renormalization group (RG), parquet RG
-  - Classical Monte Carlo: Spin systems
+    (1) Mean field: Hartree-Fock(-Bogoliubov) theory
+    (2) Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory
+    (3) Beyond mean field: Functional renormalization group (RG), parquet RG
+    (4) Classical Monte Carlo: Spin systems
 4. Tensor network methods:
-  - Tools for tensor networks, including a direct contraction of arbitrary diagrams.
-  - Multiscale entanglement renormalization ansatz (MERA)
+    (1) Tools for tensor networks, including a direct contraction of arbitrary diagrams.
+    (2) Multiscale entanglement renormalization ansatz (MERA)
 5. 3D visualization of lattices and superconducting/spin/charge ordered states
 
 
