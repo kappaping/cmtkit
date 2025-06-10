@@ -11,7 +11,7 @@ The main features of my library include:
     - Classical Monte Carlo: Spin systems
 4. Tensor network methods:
     - Tools for tensor networks, including a direct contraction of arbitrary diagrams.
-    - Multiscale entanglement renormalization ansatz (MERA) [Reference](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.79.144108)
+    - Multiscale entanglement renormalization ansatz (MERA) [[Reference]](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.79.144108)
 5. 3D visualization of lattices and superconducting/spin/charge ordered states
 
 
