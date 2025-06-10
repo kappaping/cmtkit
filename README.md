@@ -4,7 +4,7 @@ Since I started my postdoctoral stint at UC Berkeley, a significant portion of m
 The main features of my library include:
 1. Public repository on GitHub: https://github.com/kappaping/cmt_code
 2. Wide applicability on arbitrary 1D to 3D lattices and Fermi-Hubbard models
-3. Computation of band structures and superconducting/spin/charge ordered states:
+3. Computation of band structures and superconducting/spin/charge ordered states:\n
     (1) Mean field: Hartree-Fock(-Bogoliubov) theory
     (2) Dynamics: Time-dependent Hartree-Fock(-Bogoliubov) theory
     (3) Beyond mean field: Functional renormalization group (RG), parquet RG
