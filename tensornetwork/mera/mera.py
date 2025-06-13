@@ -52,8 +52,8 @@ class mera():
         self.rho_top = rho_top
 
 
-    def optimize(self, h, M_ansatz, M_layer, M_one, error_max=1e-8):
-        e = algorithm.optimization(self, h, M_ansatz, M_layer, M_one, error_max)
+    def optimize(self, h, M_ansatz=1e4, M_layer=5, M_one=5, error_max=1e-8, tensor_error_max=1e-8, to_dynamic_M=True):
+        e = algorithm.optimization(self, h, M_ansatz=M_ansatz, M_layer=M_layer, M_one=M_one, error_max=error_max, tensor_error_max=tensor_error_max, to_dynamic_M=to_dynamic_M)
 
         return e
 

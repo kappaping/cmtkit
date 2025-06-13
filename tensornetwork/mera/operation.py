@@ -85,10 +85,10 @@ def minimize(w, u, h, rho, tensor_type):
 
     if tensor_type == "w":
         Y = environment_w(w, u, h, rho)
-        bonds_io = [[1, 2, 3], [0]]
+        bonds_io = [[0, 1, 2], [3]]
     elif tensor_type == "u":
         Y = environment_u(w, u, h, rho)
-        bonds_io = [[2, 3], [0, 1]]
+        bonds_io = [[0, 1], [2, 3]]
     Y_matrix = tensor_tools.get_matrix(Y, bonds_io)
 
     U, S, Vh = np.linalg.svd(Y_matrix)

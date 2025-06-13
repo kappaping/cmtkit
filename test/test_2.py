@@ -3,7 +3,7 @@ import sys
 sys.path.append("../")
 from tensornetwork import network
 
-diagram_name = "../mera/diagrams/Env_u_R.dgm"
+diagram_name = "../tensornetwork/mera/diagrams/Env_u_R.dgm"
 w = np.zeros((8, 2, 2, 2))
 u = np.zeros((2, 2, 2, 2))
 h = np.zeros((2, 2, 2, 2))
@@ -17,6 +17,6 @@ print(network_0.diagram)
 print(network_0.order)
 print(network_0.ext_bonds)
 
-print("Tensor network contraction =", network_0.contract(toprint=True).shape)
+print("Tensor network contraction =", network_0.contract(to_print=True).shape)
 
 

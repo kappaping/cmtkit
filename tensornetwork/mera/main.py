@@ -14,14 +14,15 @@ import mera
 
 N_layer = 5
 d = 2
-chi = 12
+chi = 8
 ansatz = mera.mera(N_layer, d, chi)
 
 J = 1.
 hx = 1.
-h = spin_model.tf_ising(2, J, hx)
+h = spin_model.tf_ising(J, hx)
+#h = spin_model.heisenberg(J)
 
-M_ansatz = 1000
+M_ansatz = 10000
 M_layer = 2
 M_one = 2
 

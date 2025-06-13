@@ -1,3 +1,4 @@
+import math
 import mera
 
 N_layer = 4
@@ -15,3 +16,4 @@ us = mera_0.us
 print("u shapes:", [u.shape for u in us])
 rho_top = mera_0.rho_top
 print("rho_top shapes:", rho_top.shape)
+
