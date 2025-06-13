@@ -19,11 +19,11 @@ def optimization(ansatz, h, M_ansatz=1e4, M_layer=5, M_one=5, error_max=1e-8, te
     Optimization function: Optimize the MERA by an energy minimization with respect to a given Hamiltonian.
     """
 
-    ws = ansatz.ws
-    us = ansatz.us
-    chi_top = ansatz.chi_top
-    rho_top = ansatz.rho_top
-    N_layer = ansatz.N_layer
+    ws = ansatz.isoms
+    us = ansatz.disents
+    chi_top = ansatz.dim_top
+    rho_top = ansatz.den_mat_top
+    N_layer = ansatz.num_layer
 
     # Shift the Hamiltonian to guarantee that all of the eigenvalues are negative.
     h_matrix = tensor_tools.get_matrix(h, [[0, 1], [2, 3]])
