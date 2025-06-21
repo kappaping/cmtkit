@@ -2,13 +2,12 @@
 
 '''Monte Carlo module: Functions of Monte Carlo'''
 
-from math import *
 import numpy as np
 import random
 
 import sys
-sys.path.append('../lattice')
-import lattice as ltc
+sys.path.append('../')
+import lattice.lattice as ltc
 
 
 
@@ -80,7 +79,7 @@ def mcflip(fls,Js,T,rs,Nltc,Nr,bc,ltype,fltype):
         flrf=flipsite(flr,fltype)
         e1=energyr(flrf,fls,Js,pairsr,Nltc)
         de=e1-e0
-        if(de<0. or (de>0 and random.random()<e**(-de/T))):
+        if(de<0. or (de>0 and random.random()<math.e**(-de/T))):
             fls[ltc.rid(r,Nltc)]=flrf
 
 
