@@ -2,7 +2,7 @@
 Since I started my postdoctoral stint at UC Berkeley, a significant portion of my research has been based on numerical computations of quantum many-body systems. To manage the codes for different projects harmoniously, I started to establish and maintain my own python library, CMTKit, for versatile computations in theoretical condensed matter physics. CMTKit is a scientific Python library for quantum materials and many-body lattice models. It is built upon fundamental scientific python libraries, such as NumPy, SciPy, and sparse for matrix and tensor computations, as well as Matplotlib (2D) and Mayavi (3D) for graphics. This library has supported my broad exploration into various quantum many-body systems for diverse 1D, 2D, and 3D quantum materials.
 
 The main features of my library include:
-1. Public repository on GitHub: https://github.com/kappaping/cmt_code
+1. Public repository on GitHub: https://github.com/kappaping/cmtkit
 2. Automatic modeling of arbitrary 1D to 3D quantum lattice models [[Paper]](https://arxiv.org/abs/2406.02671)
 3. Automated computation of quantum states in lattice models:
     - Variational optimization of quantum states: Hartree-Fock(-Bogoliubov) theory [[Paper]](https://arxiv.org/abs/2503.09602)
