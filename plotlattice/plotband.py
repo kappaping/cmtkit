@@ -91,36 +91,34 @@ def sectionband(H,mu,k1,k2,k0,Nk,datatype='e',sn=np.array([0.,0.,1.]),toend=True
         eescs=eescs.T
         uscs=[usc.conj().T for usc in uscs]
         if(datatype=='s'):
-            smat=0.5*np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),np.tensordot(sn,np.array([tb.paulimat(n) for n in [1,2,3]]),(0,0)))
+            smat=np.kron(np.identity(round(np.shape(Hks[0])[0]/2)),np.tensordot(sn,np.array([tb.paulimat(n) for n in [1,2,3]]),(0,0)))
             datascs=np.array([[np.linalg.multi_dot([u,smat,u.conj().T]).real for u in usc] for usc in uscs]).T
-            for nk in range(len(kscs)):
-                nb=0
-                ndg=1
-                while nb<len(eescs):
-                    if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-12):
-                        dataavg=sum([datascs[nb-n,nk] for n in range(ndg)])/ndg
-                        for n in range(ndg):
-                            datascs[nb-n,nk]=dataavg
-                        ndg=1
-                    else:ndg+=1
-                    nb+=1
         elif(datatype=='sl'):
             datascs=np.array([[np.linalg.multi_dot([u,np.kron(tb.paulimat(3),np.identity(2)),u.conj().T]).real for u in usc] for usc in uscs]).T
-            for nk in range(len(kscs)):
-                nb=0
-                ndg=1
-                while nb<len(eescs):
-                    if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-12):
-                        dataavg=sum([datascs[nb-n,nk] for n in range(ndg)])/ndg
-                        for n in range(ndg):
-                            datascs[nb-n,nk]=dataavg
-                        ndg=1
-                    else:ndg+=1
-                    nb+=1
+        elif(datatype=='eta'):
+            eta = [np.kron(np.kron(tb.paulimat(1), tb.paulimat(3)), tb.paulimat(0)), np.kron(np.kron(tb.paulimat(2), tb.paulimat(3)), tb.paulimat(0)), np.kron(np.kron(tb.paulimat(3), tb.paulimat(0)), tb.paulimat(0))]
+            smat=np.tensordot(sn,np.array(eta),(0,0))
+            datascs=np.array([[np.linalg.multi_dot([u,smat,u.conj().T]).real for u in usc] for usc in uscs]).T
+        elif(datatype=='s-eta'):
+            seta = [np.kron(np.kron(tb.paulimat(1), tb.paulimat(3)), tb.paulimat(3)), np.kron(np.kron(tb.paulimat(2), tb.paulimat(3)), tb.paulimat(3)), np.kron(np.kron(tb.paulimat(3), tb.paulimat(0)), tb.paulimat(3))]
+            smat=np.tensordot(sn,np.array(seta),(0,0))
+            datascs=np.array([[np.linalg.multi_dot([u,smat,u.conj().T]).real for u in usc] for usc in uscs]).T
+        print(datascs)
+        for nk in range(len(kscs)):
+            nb=0
+            ndg=1
+            while nb<len(eescs):
+                if(nb==len(eescs)-1 or abs(eescs[nb+1,nk]-eescs[nb,nk])>1e-12):
+                    dataavg=sum([datascs[nb-n,nk] for n in range(ndg)])/ndg
+                    for n in range(ndg):
+                        datascs[nb-n,nk]=dataavg
+                    ndg=1
+                else:ndg+=1
+                nb+=1
     return kscs,eescs,datascs
 
 
-def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False,yticks=[],cmapt='coolwarm',cmapdarker=1.,cmapmax=1.):
+def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmid=0.,zmkts=[0,-1],zmktszm=[1.,1.],datatype='e',sn=np.array([0.,0.,1.]),cttype='s',tosave=False,filetfig='',tobdg=False,yticks=[],cmapt='coolwarm',cmapdarker=1.,cmapmax=1.,torevcmap=False):
     '''
     Plot the band structure along a trajectory in the Brillouin zone.
     '''
@@ -174,6 +172,11 @@ def plotbandcontour(H,ltype,prds,Nfl,Nk,nf=0.,tosetmu=False,mu=0.,eezm=1.,eezmmi
             new_cmap=matplotlib.colors.LinearSegmentedColormap.from_list("newmax_"+cmap.name,[cmap(0.5+cmapmax*(x-0.5)) for x in np.linspace(0,1,256)])
             return new_cmap
         cmap=newrange_cmap(cmap,cmapmax=cmapmax)
+    if(torevcmap):
+        def rev_cmap(cmap):
+            new_cmap=matplotlib.colors.LinearSegmentedColormap.from_list("rev_"+cmap.name,[cmap(1-x) for x in np.linspace(0,1,256)])
+            return new_cmap
+        cmap=rev_cmap(cmap)
     norm=matplotlib.colors.Normalize(vmin=-damax,vmax=damax)
     def bandsegmentcolor(data0,data1,mu,datatype):
         # Determine the colors of a band segment [ee0,ee1].
@@ -372,9 +375,17 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
             ax.add_patch(plg)
     # High-symmetry points to label.
     if(tolabel and (bztype=='rc' or bztype=='hx')):
+        if bztype=="hx":
+            hsks=[[kp[0],np.array([kp[1][0],kp[1][1]])] for kp in bz.hskpoints(ltype,prds)]
+            hskls=hskls+[hsks[2],hsks[4]]
+            hskls[3][0] = hskls[3][0] + "'"
+            hskls[4][0] = hskls[4][0] + "'"
         hsklxs,hsklys=[[hsk[1][n] for hsk in hskls] for n in range(2)]
         hsklts=[1.1*hsk[1] for hsk in hskls]
-        hsklts[0]-=(0.2*hsklts[-2])
+        hsklts[0]-=(0.2*hsklts[1])
+        hsklts[3]-=(0.2*hsklts[1])
+        hsklts[4]-=(0.1*hsklts[1])
+        hsklts[4]+=np.array([0,-1])
         hskltxs,hskltys=[[hsklt[n] for hsklt in hsklts] for n in range(2)]
         [plt.text(hskltxs[n],hskltys[n],hskls[n][0],color='k') for n in range(len(hskls))]
         plt.scatter(hsklxs,hsklys,c='k')

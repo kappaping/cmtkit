@@ -29,9 +29,9 @@ def denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg):
     if(Ptypet=='pllt'):
         [tb.termmat(P,(1./2.)*dpe,rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(ltc.slnum(ltype)) for fl in range(Nfl)]
     # Charge-demsity modulation
-    if(Ptypet=='cdm0'):
+    elif(Ptypet=='cdm0'):
         [tb.termmat(P,(1./2.)*dpe*(0.5-rs[rid][1]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
-    if(Ptypet=='cdm1'):
+    elif(Ptypet=='cdm1'):
         [tb.termmat(P,(1./2.)*dpe*np.sign(0.5-rs[rid][1]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
     # Ferromagnetism
     elif(Ptypet=='fm'):
@@ -50,6 +50,12 @@ def denmatans(P,Ptype,rs,NB,RDV,Nrfl,dpe,tobdg):
         [tb.termmat(P,(1./2.)*dpe*((0.5-fl)+(0.5-rs[rid][1])),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
     elif(Ptypet=='fmcdm1'):
         [tb.termmat(P,(1./2.)*dpe*((0.5-fl)+np.sign(0.5-rs[rid][1])),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+    # CDM + uniform pairing
+    elif(Ptypet=='etaafm'):
+        [tb.termmat(P,(1./2.)*dpe*np.sign(0.5-rs[rid][1]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=0,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+        [tb.termmat(P,-(1./2.)*dpe*np.sign(0.5-rs[rid][1]),rid,fl,rid,fl,Nfl,tobdg=tobdg,phid0=1,phid1=1) for rid in range(Nr) for fl in range(Nfl)]
+        [tb.termmat(P,(1./2.)*dpe*(-1)**fl,rid,(fl+1)%2,rid,fl,Nfl,tobdg=tobdg,phid0=1,phid1=0) for rid in range(Nr) for fl in range(Nfl)]
+        [tb.termmat(P,(1./2.)*dpe*(-1)**fl,rid,fl,rid,(fl+1)%2,Nfl,tobdg=tobdg,phid0=0,phid1=1) for rid in range(Nr) for fl in range(Nfl)]
 
 
 

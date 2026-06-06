@@ -89,7 +89,7 @@ def ftsites(ltype,rs,prds):
     return rucs,RUCRP
 
 
-def ftham(k,H,Nrfl,RDV,rucs,RUCRP,tobdg=False):
+def ftham(k,H,Nrfl,RDV,rucs,RUCRP,tobdg=False,bdgtr=False):
     '''
     Fourier transform of the Hamiltonian H to momentum k with a given periodicity prds.
     '''
@@ -98,6 +98,11 @@ def ftham(k,H,Nrfl,RDV,rucs,RUCRP,tobdg=False):
     elif(tobdg):
         Nst=tb.statenum(Nrfl)
         HFT=np.block([[np.array([[sum([bdg.bdgblock(H,phid0,phid1)[tb.stateid(ridp[0],fl0,Nrfl[1]),tb.stateid(ridp[1],fl1,Nrfl[1])]*e**(-1.j*np.dot(k,RDV[ridp[0],ridp[1]])) for ridp in RUCRP[rucid0][rucid1]]) for rucid1 in range(Nruc) for fl1 in range(Nrfl[1])] for rucid0 in range(Nruc) for fl0 in range(Nrfl[1])]) for phid1 in range(2)] for phid0 in range(2)])
+        if bdgtr:
+            dim = HFT.shape[0] // (2 * Nrfl[1])
+            if Nrfl[1] == 2:
+                W = np.block([[np.identity(dim * Nrfl[1], dtype="complex"), np.zeros((dim * Nrfl[1], dim * Nrfl[1]), dtype="complex")], [np.zeros((dim * Nrfl[1], dim * Nrfl[1]), dtype="complex"), np.kron(np.identity(dim, dtype="complex"), 1.j * tb.paulimat(2))]])
+            HFT = np.linalg.multi_dot([W, HFT, W.conj().T])
     return HFT
 
 

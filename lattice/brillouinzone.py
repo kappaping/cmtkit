@@ -109,10 +109,12 @@ def hskcontour(ltype,prds,cttype='s'):
         if(abs(np.linalg.norm(hsks[1][1])-np.linalg.norm(hsks[2][1]))<1e-14 and cttype=='s'):return [hsks[0],hsks[1],hsks[3],hsks[0]]
 #        else:return [hsks[0],hsks[1],hsks[3],hsks[0],hsks[2],hsks[4],hsks[0]]
         elif(cttype=='pm'):return [hsks[0],hsks[1],hsks[3],hsks[0],['-'+hsks[1][0],-hsks[1][1]],['-'+hsks[3][0],-hsks[3][1]],hsks[0]]
+        elif(cttype=='c4'):return [hsks[0],hsks[1],hsks[3],hsks[0],hsks[2],hsks[3],hsks[0]]
     # Contour of hexagonal Brillouin zone.
     elif(bztype=='hx'):
         if(cttype=='s'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0]]
         elif(cttype=='pm'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0],['-'+hsks[1][0],-hsks[1][1]],[' -'+hsks[5][0],hsks[5][1]],hsks[0]]
+        elif(cttype=='mr'):return [hsks[0],hsks[1],[hsks[5][0],-hsks[5][1]],hsks[0],[hsks[2][0]+"'",hsks[2][1]],[hsks[4][0]+"'",hsks[4][1]],hsks[0]]
     # Contour of body-centered-cubic Brillouin zone.
     elif(bztype=='sc'):
         if(cttype=='s'):return [hsks[0],hsks[1],hsks[4],hsks[5],hsks[0]]

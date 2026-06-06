@@ -40,7 +40,8 @@ def sites(rs,rplids,ltype,odtype,odris,res,to3d,slcmapt=0):
         if(odtype=='sl'):cmapt='blue-red'
         elif(odtype=='bislham'):cmapt='PiYG'
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
-    elif(odtype=='c'):ods=np.array([(abs(od)**0.75)*np.sign(od) for od in odris[0]])
+    elif(odtype=='c'):ods=np.array([(abs(od)**0.75)*np.sign(od.real) for od in odris[0]])
+    elif(odtype=='fo'):ods=np.array([(sqrt(odris[0][n]**2+odris[1][n]**2)**0.75)*np.sign(odris[0][n].real) for n in range(len(odris[0]))])
     # Plot
     if(to3d):
         if(odtype in ['l','sl','wf','bislham','c','fo']):
@@ -93,13 +94,13 @@ def bonds(rs,nbplids,nnb,Nbl,ltype,bc,odtype,odris,res,slb):
             ods=[np.array([-0.5 for nb in range(len(bs))]),np.array([0. for nb in range(len(bs))])]
             cmapt='black-white'
         elif(nnb==2):
-            ods=[np.array([0.3*(-1)**rs[pair[0]][1] for pair in nbplids]),np.array([(abs(od)**0.4)*np.sign(od) for od in odris[1]])]
+            ods=[np.array([(1-(abs(odris[0][n])<1e-14))*(0.3+(abs(odris[0][n])>1e-14)*(0.3+4*(-1)*odris[0][n]))*(-1)**rs[nbplids[n][0]][1] for n in range(len(nbplids))]),np.array([(abs(od)**0.4)*np.sign(od) for od in odris[1]])]
             cmapt='PiYG'
     # For charge plot: Rescale the order magnitudes to enhance the plotting effect.
     elif(odtype=='c'):ods=[np.array([(abs(od)**0.75)*np.sign(od) for od in odris[0]]),np.array([(abs(od)**0.4)*np.sign(od) for od in odris[1]])]
     elif(odtype=='s'):ods=[np.array([(np.linalg.norm(od)**0.75)*np.sign(od[2]) for od in odris[0]]),np.array([(np.linalg.norm(od)**0.4)*np.sign(od[2]) for od in odris[1]])]
-    elif(odtype=='fo'):os=[np.array([(abs(fo)**0.75)*np.sign(fo) for fo in os[0] for n in range(2)]),np.array([(abs(fo)**0.4)*np.sign(fo) for fo in os[1] for n in range(2)])]
-    elif(odtype=='fe'):os=[np.array([sgn*(np.linalg.norm(fe)**0.75)*np.sign(fe[2]) for fe in os[0] for sgn in [1,-1]]),np.array([sgn*(np.linalg.norm(fe)**0.4)*np.sign(fe[2]) for fe in os[1] for sgn in [1,-1]])]
+    elif(odtype=='fo'):ods=[np.array([(abs(od)**0.75)*np.sign(od) for od in odris[0] for n in range(2)]),np.array([(abs(od)**0.4)*np.sign(od) for od in odris[1] for n in range(2)])]
+    elif(odtype=='fe'):ods=[np.array([sgn*(np.linalg.norm(od)**0.75)*np.sign(od[2]) for od in odris[0] for sgn in [1,-1]]),np.array([sgn*(np.linalg.norm(od)**0.4)*np.sign(od[2]) for od in odris[1] for sgn in [1,-1]])]
     bmps=[(b[0]+b[1])/2. for b in bs]    # Middle points of bonds
     bvs=[b[0]-b[1] for b in bs]  # Bond vectors
     # Imaginary
@@ -268,20 +269,22 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],Nnb=1,scl=1.,planes=[],arrows=[]
     # Compute the pairing orders.
     if(tobdg):
         # Compute the flavor-even orders.
-        feps=bdg.flavorevenpairingorder(P,nb1ids,Nrfl)
-        print('Flavor-even pairing order')
-        print('site order max = ',feps[1][0],', site order average = ',sum(feps[0][0])/len(feps[0][0]))
-        print('real bond order max = ',feps[1][1],', real bond order average = ',sum(feps[0][1])/len(feps[0][1]))
-        print('imaginary bond order max = ',feps[1][2],', imaginary bond order average = ',sum(feps[0][2])/len(feps[0][2]))
-        odsss+=[[feps]]
+        od2s=dm.orders(P,nbidss,Nrfl,odtype='fe',tobdg=tobdg)
+        print('Flavor-even pairing order:')
+        for nnb in range(Nnb+1):
+            print(nnb,numth(nnb),' neighbor:')
+            print('R max = ',od2s[1][0][nnb],', R average = ',sum(od2s[0][0][nnb])/len(od2s[0][0][nnb]))
+            print('I max = ',od2s[1][1][nnb],', I average = ',sum(od2s[0][1][nnb])/len(od2s[0][1][nnb]))
+        od4s+=[[od2s]]
         # If the flavor number > 1: Compute the flavor-odd orders.
         if(Nrfl[1]>1):
-            fops=bdg.flavoroddpairingorder(P,nb1ids,Nrfl)
-            print('Flavor-odd pairing order')
-            print('site order max = ',fops[1][0],', site order average = ',sum(fops[0][0])/len(fops[0][0]))
-            print('real bond order max = ',fops[1][1],', real bond order average = ',sum(fops[0][1])/len(fops[0][1]))
-            print('imaginary bond order max = ',fops[1][2],', imaginary bond order average = ',sum(fops[0][2])/len(fops[0][2]))
-            odsss[1]+=[fops]
+            od2s=dm.orders(P,nbidss,Nrfl,odtype='fo',tobdg=tobdg)
+            print('Flavor-odd pairing order:')
+            for nnb in range(Nnb+1):
+                print(nnb,numth(nnb),' neighbor:')
+                print('R max = ',od2s[1][0][nnb],', R average = ',sum(od2s[0][0][nnb])/len(od2s[0][0][nnb]))
+                print('I max = ',od2s[1][1][nnb],', I average = ',sum(od2s[0][1][nnb])/len(od2s[0][1][nnb]))
+            od4s[1]+=[od2s]
     # Rescale the orders.
     od4sr=rescaledorder(od4s,scl)
     nbplidss,od4spl=collectplotelements(rs,nbidss,rpls,Nnb,od4sr)
@@ -294,9 +297,9 @@ def plotorder(P,ltype,rs,Nrfl,Nbl,bc,NB,rpls=[],Nnb=1,scl=1.,planes=[],arrows=[]
     # Plot the pairing orders.
     if(tobdg):
         # Plot the flavor-even pairing orders.
-        plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][0],'fe',odssspl[1][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
+        plotlattice(rs,Nnb,nbplidss,Nbl,ltype,bc,filetfig[1][0],'fe',od4spl[1][0],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
         # If the flavor number > 2: Plot the flavor-odd pairing orders.
-        if(Nrfl[1]>1):plotlattice(rs,rplids,nbplids,Nbl,ltype,bc,filetfig[1][1],'fo',odssspl[1][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
+        if(Nrfl[1]>1):plotlattice(rs,Nnb,nbplidss,Nbl,ltype,bc,filetfig[1][1],'fo',od4spl[1][1],res=res,dpi=dpi,to3d=to3d,show3d=show3d,plaz=plaz,plel=plel,dist=dist)
 
 
 def rescaledorder(od4s,scl):

@@ -203,7 +203,7 @@ def paircharge(P,rid0,rid1,Nfl,tobdg=False):
     '''
     Compute the charge of a pair of lattice sites. The onsite charge is real, while the offsite charge can be complex.
     '''
-    return np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0))
+    return (1./2.)*np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg,0,0))
 
 
 def pairspin(P,rid0,rid1,Nfl,tobdg=False):
@@ -233,6 +233,10 @@ def orders(P,nbidss,Nrfl,odtype='c',tobdg=False):
         def odf(P,id0,id1,Nfl,tobdg):return paircharge(P,id0,id1,Nfl,tobdg)
     elif(odtype=='s'):
         def odf(P,id0,id1,Nfl,tobdg):return pairspin(P,id0,id1,Nfl,tobdg)
+    elif(odtype=='fe'):
+        def odf(P,id0,id1,Nfl,tobdg):return bdg.pairpairing(P,id0,id1,Nfl)[1:4]
+    elif(odtype=='fo'):
+        def odf(P,id0,id1,Nfl,tobdg):return bdg.pairpairing(P,id0,id1,Nfl)[0]
     # Orders at all considered neighbors
     odss=[[odf(P,pair[0],pair[1],Nrfl[1],tobdg) for pair in nbids] for nbids in nbidss]
     # Extract the order as the deviation from the average
@@ -241,9 +245,9 @@ def orders(P,nbidss,Nrfl,odtype='c',tobdg=False):
         odss=[[od-odavgs[nods] for od in odss[nods]] for nods in range(len(odss))]
     # Distinguish the real and imaginary orders
     odrss,odiss=[[od.real for od in ods] for ods in odss],[[od.imag for od in ods] for ods in odss]
-    if(odtype=='c'):
+    if(odtype=='c' or odtype=="fo"):
         odramaxs,odiamaxs=[np.max(np.abs(odrs)) for odrs in odrss],[np.max(np.abs(odis)) for odis in odiss]
-    elif(odtype=='s'):
+    elif(odtype=='s' or odtype=="fe"):
         odramaxs,odiamaxs=[np.max(np.array([np.linalg.norm(odr) for odr in odrs])) for odrs in odrss],[np.max(np.array([np.linalg.norm(odi) for odi in odis])) for odis in odiss]
 
     return [[odrss,odiss],[odramaxs,odiamaxs]]

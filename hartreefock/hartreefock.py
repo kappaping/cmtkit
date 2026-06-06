@@ -45,7 +45,7 @@ def hfham(H0,P,UINT,tobdg=False,mu=0.):
         Hhf11=sparse.tensordot(UINT,PBs[1][1],axes=((2,1),(1,0))).T-sparse.tensordot(UINT,PBs[1][1],axes=((3,1),(1,0))).T
         Hhf01=sparse.tensordot(UINT,PBs[0][1],axes=((2,3),(1,0)))
         Hhf10=sparse.tensordot(UINT,PBs[1][0],axes=((0,1),(1,0)))
-        Hhf=bdg.phmattobdg(H0,isham=True,mu=mu)+(1./2.)*np.block([[Hhf00,Hhf01],[Hhf10,Hhf11]])
+        Hhf=bdg.phmattobdg(H0,isham=True,mu=mu)+np.block([[Hhf00,Hhf01],[Hhf10,Hhf11]])
     return Hhf
 
 
@@ -59,8 +59,11 @@ def energy(H0,P,Hhf,Nst,tobdg=False,mu=0.):
     Nst: Total number of states.
     '''
     H0t,Nstt=H0,Nst
-    if(tobdg):H0t,Nstt=bdg.phmattobdg(H0,isham=True,mu=mu),2*Nst
-    ee=(1./2.)*np.trace(np.dot(P,H0t+Hhf)).real/Nstt
+    if tobdg:
+        H0t,Nstt=bdg.phmattobdg(H0,isham=True,mu=mu),2*Nst
+        ee=(1./2.)*np.trace(np.dot(P,(1./2.)*(H0t+Hhf))).real/Nstt
+    else:
+        ee=(1./2.)*np.trace(np.dot(P,H0t+Hhf)).real/Nstt
     return ee
 
 
@@ -69,7 +72,7 @@ def energy(H0,P,Hhf,Nst,tobdg=False,mu=0.):
 '''Algorithm'''
 
 
-def hartreefock(Pi,H0,UINT,NB,Nrfl,nf,tofile=False,filet='',optm=0,Nnb=1,printdm=20,writedm=200,Nhf=100000,Nhfm=0,dee0=1e-15,dp0=1e-15,Ptype='rand',tobdg=False,mu=0.,toexc=False):
+def hartreefock(Pi,H0,UINT,NB,Nrfl,nf,tofile=False,filet='',optm=0,Nnb=1,printdm=20,writedm=200,Nhf=100000,Nhfm=0,dee0=1e-15,dp0=1e-15,Ptype='rand',tobdg=False,mu=0.,set_filling="mu",toexc=False):
     '''
     Hartree-Fock theory: Iterative algorithm for the computation of interacting ground states in the Hartree-Fock theory.
     Return: A NrxNr density matrix Pm for the ground state.
@@ -137,13 +140,13 @@ def hartreefock(Pi,H0,UINT,NB,Nrfl,nf,tofile=False,filet='',optm=0,Nnb=1,printdm
         if(toprint):printstatus(eem1,Pm1,nbidss,Nrfl,atit=1,n=nm,dee=deem,dp=dpm,tobdg=tobdg,mu=mu1,dnf=dnfm1)
         # Write out the density matrix and the chemical potential.
         if(tofile and towrite):
-            if(tobdg):mu=getchempot(H0,Pm1,UINT,nf,Nst,mu1,tobdg=True,dnf0=dnf0,maxiter=maxiter0,toprint=toprint)
+            if(tobdg and set_filling=="nf"):mu=getchempot(H0,Pm1,UINT,nf,Nst,mu1,tobdg=True,dnf0=dnf0,maxiter=maxiter0,toprint=toprint)
             writetofile(Pm1,filet,tobdg=tobdg,mu=mu)
         # Break if the error is small enough.
 #        if(-dee0<deem<=0. and (eem1<eemmin or abs(deemmin)<dee0) and dpm<dp0 and nm>Nhfm):
         if(-dee0<deem<=0. and dpm<dp0 and nm>Nhfm):
             eem,Pm=eem1,Pm1
-            if(tobdg):mu=getchempot(H0,Pm1,UINT,nf,Nst,mu1,tobdg=True,dnf0=dnf0,maxiter=maxiter0,toprint=toprint)
+            if(tobdg and set_filling=="hf"):mu=getchempot(H0,Pm1,UINT,nf,Nst,mu1,tobdg=True,dnf0=dnf0,maxiter=maxiter0,toprint=toprint)
             break
         # Optimal-damping algorithm (ODA).
         Pm1t=Pm1
@@ -151,7 +154,7 @@ def hartreefock(Pi,H0,UINT,NB,Nrfl,nf,tofile=False,filet='',optm=0,Nnb=1,printdm
         # Print out the status of interpolated density matrix.
         if(toprint):printstatus(eem1,Pm1t,nbidss,Nrfl,tonoit=True,tobdg=tobdg)
         # Search for the chemical potential that fixes the filling at nf.
-        if(tobdg):mu1=getchempot(H0,Pm1t,UINT,nf,Nst,mut,tobdg=True,dnf0=dnf0,maxiter=maxiter0,toprint=toprint)
+        if(tobdg and set_filling=="nf"):mu1=getchempot(H0,Pm1t,UINT,nf,Nst,mut,tobdg=True,dnf0=dnf0,maxiter=maxiter0,toprint=toprint)
         # Construct the new Hartree-Fock Hamiltonian.
         Hhfmt=hfham(H0,Pm1t,UINT,tobdg,mu1)
         # Reset the energy and density matrix for the next iteration.
@@ -172,7 +175,7 @@ def writetofile(P,filet,tobdg=False,mu=0.):
     '''
     Write the density matrix to the file. If tobdg=True, also write the chemical potential mu.
     '''
-    print('      Write to file.')
+    print(f'      Write to file: {filet}')
     if(tobdg==False):joblib.dump(P,filet)
     elif(tobdg):joblib.dump([P,mu],filet)
 
@@ -207,11 +210,11 @@ def printstatus(ee,P,nbidss,Nrfl,atit=1,n=-1,dee=0.,dp=0.,tonoit=False,tobdg=Fal
         ors=dm.orbitalorder(P,nbidss,Nrfl,tobdg=todbg)
         print('    som =',ors[1][0],', borm =',ors[1][1],', boim =',ors[1][2])
     if(tobdg):
-        feps=bdg.flavorevenpairingorder(P,nbidss,Nrfl)
-        print('    sfepm =',feps[1][0],', bfepm =',feps[1][1])
+        odmaxss=dm.orders(P,nbidss,Nrfl,odtype='fe',tobdg=tobdg)[1]
+        print('     Fe: Rs =',odmaxss[0],', Is =',odmaxss[1])
         if(Nrfl[1]>1):
-            fops=bdg.flavoroddpairingorder(P,nbidss,Nrfl)
-            print('    sfopm =',fops[1][0],', bfoprm =',fops[1][1])
+            odmaxss=dm.orders(P,nbidss,Nrfl,odtype='fo',tobdg=tobdg)[1]
+            print('     Fo: Rs =',odmaxss[0],', Is =',odmaxss[1])
     sys.stdout.flush()
 
 
@@ -269,7 +272,7 @@ def oda(Pmt,Pm1,Hhfmt,Hhfm1,H0,toprint,tobdg,mut,mu1,nm,nmpcov,deem,dpm):
     deema=1./((nm+nmpcov+1)**2)
     dpma=max((0.1*np.max(np.abs(Pm1)))/((nm+nmpcov+1)**(3+tobdg)),1e-14)
     if(toprint==1):print('      deema = ',deema,', dpma = ',dpma)
-    if(((deem>-1e-15 or abs(deem)>deema) and dpm>dpma) or (tobdg and dpm>0.01*sqrt(abs(deem)))):
+    if(((deem>0 or abs(deem)>deema) and dpm>dpma) or (tobdg and dpm>max(sqrt(abs(deem)),1e-14))):
         ldam=0.25
         if(toprint==1):print('      reset ldam = ',ldam)
     return Pmt+ldam*dPm,mut+ldam*(mu1-mut)

@@ -25,7 +25,6 @@ def phmattobdg(M,isham=False,mu=0.):
     Mt=np.copy(M)
     if(isham):Mt-=mu*np.identity(Nst)
     Mbdg=np.block([[Mt,np.zeros((Nst,Nst))],[np.zeros((Nst,Nst)),-Mt.T]])
-    if(isham):Mbdg*=1./2.
     return Mbdg
 
 
@@ -53,8 +52,9 @@ def pairpairing(P,rid0,rid1,Nfl):
     '''
     Get the pairings of a pair of lattice sites with indices rid0 and rid1.
     '''
-    if(Nfl==1):return np.array([0.,0.,0.,np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1))])
-    elif(Nfl==2):return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.dot((1./sqrt(2.))*tb.paulimat(n),1.j*tb.paulimat(2)).conj().T)) for n in [0,1,2,3]])
+    if(Nfl==1):return np.array([0.,0.,0.,np.trace(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=1,phid1=0))])
+    #elif(Nfl==2):return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=0,phid1=1),np.dot((1./sqrt(2.))*tb.paulimat(n),1.j*tb.paulimat(2)).conj().T)) for n in [0,1,2,3]])
+    elif(Nfl==2):return np.array([np.trace(np.dot(tb.pairmat(P,rid0,rid1,Nfl,tobdg=True,phid0=1,phid1=0),np.dot((1./2.)*tb.paulimat(n),1.j*tb.paulimat(2)))) for n in [0,1,2,3]])
     elif(Nfl==4):
         somatsfo=np.array([tb.somat(0,n) for n in [1,2,3]]+[tb.somat(n,0) for n in [1,2,3]])
         somatsfe=np.array([tb.somat(0,0)]+[tb.somat(n0,n1) for n0 in [1,2,3] for n1 in [1,2,3]])
