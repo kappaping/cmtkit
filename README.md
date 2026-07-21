@@ -27,6 +27,7 @@ This figure of altermagnetism ([arXiv:2503.09602](https://arxiv.org/abs/2503.096
 ## Setup
 
 Please use the following steps to enable CMTKit for research use:
+
 1. git clone [https://github.com/kappaping/cmtkit.git](https://github.com/kappaping/cmtkit.git)
 2. Install the dependencies:
     - python=3.12
@@ -38,4 +39,5 @@ Please use the following steps to enable CMTKit for research use:
     - matplotlib
     - vtk=9.4.2
     - mayavi=4.8.3
+
 The library currently needs to be used by importing relevant modules through sys.path.append. Stay tuned on future updates of objectizing the library for more convenient use!
