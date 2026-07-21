@@ -29,7 +29,8 @@ This figure of altermagnetism ([arXiv:2503.09602](https://arxiv.org/abs/2503.096
 Please use the following steps to enable CMTKit for research use:
 
 1. git clone [https://github.com/kappaping/cmtkit.git](https://github.com/kappaping/cmtkit.git)
-2. Install the dependencies:
+2. Create a conda/micromamba environment.
+3. Install the dependencies:
     - python=3.12
     - numpy=1.26
     - scipy
