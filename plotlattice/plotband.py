@@ -384,8 +384,9 @@ def plotbz(ltype,prds,ks,todata=False,data=[],ptype='pt',dks=[],bzop=False,toclm
         hsklts=[1.1*hsk[1] for hsk in hskls]
         hsklts[0]-=(0.2*hsklts[1])
         hsklts[3]-=(0.2*hsklts[1])
-        hsklts[4]-=(0.1*hsklts[1])
-        hsklts[4]+=np.array([0,-1])
+        if bztype=="hx":
+            hsklts[4]-=(0.1*hsklts[1])
+            hsklts[4]+=np.array([0,-1])
         hskltxs,hskltys=[[hsklt[n] for hsklt in hsklts] for n in range(2)]
         [plt.text(hskltxs[n],hskltys[n],hskls[n][0],color='k') for n in range(len(hskls))]
         plt.scatter(hsklxs,hsklys,c='k')
